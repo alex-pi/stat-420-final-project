@@ -94,4 +94,21 @@ gen_kable(colnames(water_potability),
           caption = "List of variables")
 ```
 
+## Background information
+
+(Needs work)
+
+## Statement of interest
+
+(Needs work)
+
+## Data load proof
+
+Data has been load above in variable `water_potability`.
+
+Here we take a look at a few of the `response` values. Note that `Potability` is binary response variable, so we intend to use `Logistic Regression`.
+
+```{r}
+head(water_potability[, "Potability"])
+```
 

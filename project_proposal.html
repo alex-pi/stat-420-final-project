@@ -190,6 +190,9 @@ pre code {
 <li><a href="#team-members">Team members</a></li>
 <li><a href="#project-title">Project Title</a></li>
 <li><a href="#description-of-the-data-file.">Description of the data file.</a></li>
+<li><a href="#background-information">Background information</a></li>
+<li><a href="#statement-of-interest">Statement of interest</a></li>
+<li><a href="#data-load-proof">Data load proof</a></li>
 </ul></li>
 </ul>
 </div>
@@ -358,6 +361,29 @@ Potability
 </tr>
 </tbody>
 </table>
+</div>
+<div id="background-information" class="section level2">
+<h2>Background information</h2>
+<p>(Needs work)</p>
+</div>
+<div id="statement-of-interest" class="section level2">
+<h2>Statement of interest</h2>
+<p>(Needs work)</p>
+</div>
+<div id="data-load-proof" class="section level2">
+<h2>Data load proof</h2>
+<p>Data has been load above in variable <code>water_potability</code>.</p>
+<p>Here we take a look at a few of the <code>response</code> values. Note that <code>Potability</code> is binary response variable, so we intend to use <code>Logistic Regression</code>.</p>
+<pre class="r"><code>head(water_potability[, &quot;Potability&quot;])</code></pre>
+<pre><code>## # A tibble: 6 x 1
+##   Potability
+##        &lt;dbl&gt;
+## 1          0
+## 2          0
+## 3          0
+## 4          0
+## 5          0
+## 6          0</code></pre>
 </div>
 </div>
 
