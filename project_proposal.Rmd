@@ -1,6 +1,6 @@
 ---
 title: 'STAT 420 - Project Proposal'
-authors: "Joshua Ceaser, Bryan Holcomb (bryanph2), Alejandro Pimentel (ap41)"
+authors: "Joshua Ceaser(jceaser2), Bryan Holcomb (bryanph2), Alejandro Pimentel (ap41)"
 date: '07/19/2021'
 output:
   html_document: 
@@ -67,7 +67,7 @@ gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names 
 
 Team Name: Team Texas, (aka The Normal Guys)
 
-- Joshua Ceaser **(your id here)**
+- Joshua Ceaser **jceaser2**
 - Bryan Holcomb **bryanph2**
 - Alejandro Pimentel **ap41**
 
@@ -96,11 +96,14 @@ gen_kable(colnames(loans_full_schema)[1:12],
 
 ## Background information
 
-(Needs work)
+The dataset contains background data on loans made through the LendingClub platform, an online peer-to-peer lender in which investors were able provide personal loans to borrowers. The platform shut down in 2020. The data was publicly available through the LendingClub website prior to its shutdown, but is included in the `openintro` package in R.
+
+From the R documentation: 
+>This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!
 
 ## Statement of interest
 
-(Needs work)
+We are interested in this dataset because it is a good example of the kind of data that will be analyzed in the private sector. Many industries consider income and credit history in making business decisions. Not only will this provide a quality learning opportunity involving real-world data, but will also provide a tangible example of statistical modeling experience that we can use as we continue our data science careers.
 
 ## Data load proof
 
