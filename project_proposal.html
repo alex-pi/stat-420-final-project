@@ -246,9 +246,9 @@ gen_kable &lt;- function(table_data, add_row_names = TRUE, caption = &quot;&quot
 <h2>Team members</h2>
 <p>Team Name: Team Texas, (aka The Normal Guys)</p>
 <ul>
-<li>Joshua Ceaser <strong>jceaser2</strong></li>
-<li>Bryan Holcomb <strong>bryanph2</strong></li>
-<li>Alejandro Pimentel <strong>ap41</strong></li>
+<li>Joshua Ceaser. <strong>jceaser2</strong></li>
+<li>Bryan Holcomb. <strong>bryanph2</strong></li>
+<li>Alejandro Pimentel. <strong>ap41</strong></li>
 </ul>
 </div>
 <div id="project-title" class="section level2">
@@ -262,7 +262,19 @@ gen_kable &lt;- function(table_data, add_row_names = TRUE, caption = &quot;&quot
 loans_full_schema &lt;- read_csv(&quot;./loans_full_schema.csv&quot;)</code></pre>
 <p>Number of variables: <strong>55</strong></p>
 <p>Number of observations: <strong>10000</strong></p>
-<pre class="r fold-hide"><code>gen_kable(colnames(loans_full_schema)[1:12], 
+<p>Below is a list of what we consider <code>relevant</code> predictors after a quick analysis. This list might change as we go deeper in our look for a good model.</p>
+<pre class="r fold-hide"><code>potential_preds &lt;- c(&quot;debt_to_income_joint&quot;,
+                      &quot;inquiries_last_12m&quot;,
+                      &quot;total_credit_utilized&quot;,
+                      &quot;current_installment_accounts&quot;,
+                      &quot;accounts_opened_24m&quot;,
+                      &quot;num_satisfactory_accounts&quot;,
+                      &quot;num_active_debit_accounts&quot;,
+                      &quot;total_debit_limit&quot;,
+                      &quot;num_open_cc_accounts&quot;,
+                      &quot;num_cc_carrying_balance&quot;)
+
+gen_kable(potential_preds, 
           col_names = c(&quot;Variable Name&quot;),
           caption = &quot;Potential Variables of Interest&quot;)</code></pre>
 <table class="table table-striped table-hover" style="font-size: 14px; width: auto !important; margin-left: auto; margin-right: auto;">
@@ -284,7 +296,7 @@ Variable Name
 1
 </td>
 <td style="text-align:left;">
-emp_title
+debt_to_income_joint
 </td>
 </tr>
 <tr>
@@ -292,7 +304,7 @@ emp_title
 2
 </td>
 <td style="text-align:left;">
-emp_length
+inquiries_last_12m
 </td>
 </tr>
 <tr>
@@ -300,7 +312,7 @@ emp_length
 3
 </td>
 <td style="text-align:left;">
-state
+total_credit_utilized
 </td>
 </tr>
 <tr>
@@ -308,7 +320,7 @@ state
 4
 </td>
 <td style="text-align:left;">
-homeownership
+current_installment_accounts
 </td>
 </tr>
 <tr>
@@ -316,7 +328,7 @@ homeownership
 5
 </td>
 <td style="text-align:left;">
-annual_income
+accounts_opened_24m
 </td>
 </tr>
 <tr>
@@ -324,7 +336,7 @@ annual_income
 6
 </td>
 <td style="text-align:left;">
-verified_income
+num_satisfactory_accounts
 </td>
 </tr>
 <tr>
@@ -332,7 +344,7 @@ verified_income
 7
 </td>
 <td style="text-align:left;">
-debt_to_income
+num_active_debit_accounts
 </td>
 </tr>
 <tr>
@@ -340,7 +352,7 @@ debt_to_income
 8
 </td>
 <td style="text-align:left;">
-annual_income_joint
+total_debit_limit
 </td>
 </tr>
 <tr>
@@ -348,7 +360,7 @@ annual_income_joint
 9
 </td>
 <td style="text-align:left;">
-verification_income_joint
+num_open_cc_accounts
 </td>
 </tr>
 <tr>
@@ -356,23 +368,7 @@ verification_income_joint
 10
 </td>
 <td style="text-align:left;">
-debt_to_income_joint
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-11
-</td>
-<td style="text-align:left;">
-delinq_2y
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-12
-</td>
-<td style="text-align:left;">
-months_since_last_delinq
+num_cc_carrying_balance
 </td>
 </tr>
 </tbody>
@@ -381,7 +377,8 @@ months_since_last_delinq
 <div id="background-information" class="section level2">
 <h2>Background information</h2>
 <p>The dataset contains background data on loans made through the LendingClub platform, an online peer-to-peer lender in which investors were able provide personal loans to borrowers. The platform shut down in 2020. The data was publicly available through the LendingClub website prior to its shutdown, but is included in the <code>openintro</code> package in R.</p>
-<p>From the R documentation: &gt;This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!</p>
+<p><em>From the R documentation:</em></p>
+<p><em>&gt;This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!</em></p>
 </div>
 <div id="statement-of-interest" class="section level2">
 <h2>Statement of interest</h2>

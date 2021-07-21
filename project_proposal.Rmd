@@ -67,9 +67,9 @@ gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names 
 
 Team Name: Team Texas, (aka The Normal Guys)
 
-- Joshua Ceaser **jceaser2**
-- Bryan Holcomb **bryanph2**
-- Alejandro Pimentel **ap41**
+- Joshua Ceaser. **jceaser2**
+- Bryan Holcomb. **bryanph2**
+- Alejandro Pimentel. **ap41**
 
 ## Project Title
 
@@ -88,8 +88,22 @@ Number of variables: **`r dim(loans_full_schema)[2]`**
 
 Number of observations: **`r dim(loans_full_schema)[1]`**
 
+Below is a list of what we consider `relevant` predictors after a quick analysis. This list might change as we go deeper in our look for a good model.
+
 ```{r, class.source = 'fold-hide'}
-gen_kable(colnames(loans_full_schema)[1:12], 
+
+potential_preds <- c("debt_to_income_joint",
+                      "inquiries_last_12m",
+                      "total_credit_utilized",
+                      "current_installment_accounts",
+                      "accounts_opened_24m",
+                      "num_satisfactory_accounts",
+                      "num_active_debit_accounts",
+                      "total_debit_limit",
+                      "num_open_cc_accounts",
+                      "num_cc_carrying_balance")
+
+gen_kable(potential_preds, 
           col_names = c("Variable Name"),
           caption = "Potential Variables of Interest")
 ```
@@ -98,8 +112,9 @@ gen_kable(colnames(loans_full_schema)[1:12],
 
 The dataset contains background data on loans made through the LendingClub platform, an online peer-to-peer lender in which investors were able provide personal loans to borrowers. The platform shut down in 2020. The data was publicly available through the LendingClub website prior to its shutdown, but is included in the `openintro` package in R.
 
-From the R documentation: 
->This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!
+*From the R documentation:*
+
+*>This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!*
 
 ## Statement of interest
 
