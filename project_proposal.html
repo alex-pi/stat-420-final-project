@@ -262,7 +262,7 @@ gen_kable &lt;- function(table_data, add_row_names = TRUE, caption = &quot;&quot
 loans_full_schema &lt;- read_csv(&quot;./loans_full_schema.csv&quot;)</code></pre>
 <p>Number of variables: <strong>55</strong></p>
 <p>Number of observations: <strong>10000</strong></p>
-<p>Below is a list of what we consider <code>relevant</code> predictors after a quick analysis. This list might change as we go deeper in our look for a good model.</p>
+<p>Below is a list of what we consider <code>relevant</code> predictors after a quick analysis. This list might change as we go deeper in our search for a good model.</p>
 <pre class="r fold-hide"><code>potential_preds &lt;- c(&quot;debt_to_income_joint&quot;,
                       &quot;inquiries_last_12m&quot;,
                       &quot;total_credit_utilized&quot;,
@@ -272,7 +272,9 @@ loans_full_schema &lt;- read_csv(&quot;./loans_full_schema.csv&quot;)</code></pr
                       &quot;num_active_debit_accounts&quot;,
                       &quot;total_debit_limit&quot;,
                       &quot;num_open_cc_accounts&quot;,
-                      &quot;num_cc_carrying_balance&quot;)
+                      &quot;num_cc_carrying_balance&quot;,
+                      &quot;homeownership&quot;,
+                      &quot;verified_income&quot;)
 
 gen_kable(potential_preds, 
           col_names = c(&quot;Variable Name&quot;),
@@ -369,6 +371,22 @@ num_open_cc_accounts
 </td>
 <td style="text-align:left;">
 num_cc_carrying_balance
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+homeownership
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+verified_income
 </td>
 </tr>
 </tbody>

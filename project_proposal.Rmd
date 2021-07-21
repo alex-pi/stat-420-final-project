@@ -88,7 +88,7 @@ Number of variables: **`r dim(loans_full_schema)[2]`**
 
 Number of observations: **`r dim(loans_full_schema)[1]`**
 
-Below is a list of what we consider `relevant` predictors after a quick analysis. This list might change as we go deeper in our look for a good model.
+Below is a list of what we consider `relevant` predictors after a quick analysis. This list might change as we go deeper in our search for a good model.
 
 ```{r, class.source = 'fold-hide'}
 
@@ -101,7 +101,9 @@ potential_preds <- c("debt_to_income_joint",
                       "num_active_debit_accounts",
                       "total_debit_limit",
                       "num_open_cc_accounts",
-                      "num_cc_carrying_balance")
+                      "num_cc_carrying_balance",
+                      "homeownership",
+                      "verified_income")
 
 gen_kable(potential_preds, 
           col_names = c("Variable Name"),
