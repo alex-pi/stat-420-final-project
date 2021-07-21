@@ -1,6 +1,6 @@
 ---
 title: 'STAT 420 - Project Proposal'
-authors: "Joshua Ceaser, Bryan Holcomb, Alejandro Pimentel (ap41)"
+authors: "Joshua Ceaser, Bryan Holcomb (bryanph2), Alejandro Pimentel (ap41)"
 date: '07/19/2021'
 output:
   html_document: 
@@ -68,30 +68,30 @@ gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names 
 Team Name: Team Texas, (aka The Normal Guys)
 
 - Joshua Ceaser **(your id here)**
-- Bryan Holcomb **(your id here)**
-- Alejandro Pimentel **(ap41)**
+- Bryan Holcomb **bryanph2**
+- Alejandro Pimentel **ap41**
 
 ## Project Title
 
-**Quality metrics for water potability**
+**Lending Club Interest Rate **
 
 ## Description of the data file.
 
-File name: **water_potability.csv**
+File name: **loans_full_schema.csv**
 
 ```{r message=FALSE, warning=FALSE}
 library(readr)
-water_potability <- read_csv("./water_potability.csv")
+loans_full_schema <- read_csv("./loans_full_schema.csv")
 ```
 
-Number of variables: **`r dim(water_potability)[2]`**
+Number of variables: **`r dim(loans_full_schema)[2]`**
 
-Number of observations: **`r dim(water_potability)[1]`**
+Number of observations: **`r dim(loans_full_schema)[1]`**
 
 ```{r, class.source = 'fold-hide'}
-gen_kable(colnames(water_potability), 
+gen_kable(colnames(loans_full_schema)[1:12], 
           col_names = c("Variable Name"),
-          caption = "List of variables")
+          caption = "Potential Variables of Interest")
 ```
 
 ## Background information
@@ -104,11 +104,11 @@ gen_kable(colnames(water_potability),
 
 ## Data load proof
 
-Data has been load above in variable `water_potability`.
+Data has been loaded above in variable `loans_full_schema`.
 
-Here we take a look at a few of the `response` values. Note that `Potability` is binary response variable, so we intend to use `Logistic Regression`.
+Here we take a look at a few of the `response` values.
 
 ```{r}
-head(water_potability[, "Potability"])
+head(loans_full_schema[, "interest_rate"])
 ```
 
