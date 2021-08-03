@@ -1,0 +1,144 @@
+---
+title: 'Lending Club Interest Rate Model'
+date: '8/3/2021'
+output:
+  html_document: 
+    theme: readable
+    toc: yes  
+    code_folding: show
+  pdf_document: default
+css: report.css
+urlcolor: cyan
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80, fig.align = "center")
+```
+
+*Utility functions defined here, click `Code` to see*
+
+```{r message=FALSE, warning=FALSE, class.source = 'fold-hide'}
+library(knitr)
+library(kableExtra)
+library(dplyr)
+
+format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
+  # make sure is a data.frame, then format
+  if(!is.data.frame(data)){
+    data <- as.data.frame(data)
+  }  
+  data %>% 
+    mutate_if(
+      is.numeric, 
+      function(x) {
+        if_else(
+          abs(x) < notation_threshold, 
+          formatC(x, digits = digits, format = "e"), 
+          formatC(x, digits = digits, format = "f", drop0trailing = FALSE)
+        )
+      }
+    )
+}
+
+gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names = c(), row_names = c()) {
+  f_data <- format_numerics(table_data) 
+  if(length(col_names) != 0){
+    colnames(f_data) <- col_names
+  }
+  if(length(row_names) != 0){
+    rownames(f_data) <- row_names
+  }  
+  f_data %>%
+  kable(., format = "html", row.names = add_row_names,
+        caption = caption, 
+        escape = FALSE) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"),
+                  full_width = F,
+                  font_size = 14,
+                  position = "center") %>%
+    footnote(general = "Table 1.1, Predictors.")
+}
+
+```
+
+# Introduction
+
+## About the Data
+
+The dataset contains background data on loans made through the LendingClub platform, an online peer-to-peer lender in which investors were able provide personal loans to borrowers. The platform shut down in 2020. The data was publicly available through the LendingClub website prior to its shutdown, but is included in the `openintro` package in R.
+
+*From the R documentation:*
+
+> This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!
+
+The dataset can be accessed by installing the `R package` below.
+
+```{r, eval=FALSE}
+install.packages("openintro")
+```
+
+```{r, message=FALSE}
+library("openintro")
+```
+
+Number of variables: **`r dim(loans_full_schema)[2]`**
+
+Number of observations: **`r dim(loans_full_schema)[1]`**
+
+## Statement of interest
+
+We are interested in this dataset because it is a good example of the kind of data that will be analyzed in the private sector. Many industries consider income and credit history in making business decisions. Not only will this provide a quality learning opportunity involving real-world data, but will also provide a tangible example of statistical modeling experience that we can use as we continue our data science careers.
+
+## Goal of the Model
+
+This study aims to to find a `model` with a good balance between `Explanation` and `Prediction` of the `interest_rate`. We want to see what are the main `predictors` that explain such response among the observations. Based on those `predictors` we also want the model to have acceptable performance for `Prediction`.
+
+## Predictors of Interest
+
+We will limit our study to the `variables` shown below.
+
+```{r, class.source = 'fold-hide', warning=FALSE}
+
+preds <- c("debt_to_income_joint",
+                      "inquiries_last_12m",
+                      "total_credit_utilized",
+                      "current_installment_accounts",
+                      "accounts_opened_24m",
+                      "num_satisfactory_accounts",
+                      "num_active_debit_accounts",
+                      "total_debit_limit",
+                      "num_open_cc_accounts",
+                      "num_cc_carrying_balance",
+                      "home_ownership",
+                      "verified_income")
+
+descriptions <- c("Debt-to-income ratio for the two parties.",
+                      "Inquiries into the applicant's credit during the last 12 months.",
+                      "Total credit balance, excluding a mortgage.",
+                      "Number of installment accounts, which are (roughly) accounts with a fixed payment amount and period. A typical example might be a 36-month car loan.",
+                      "Number of new lines of credit opened in the last 24 months.",
+                      "Number of satisfactory accounts.",
+                      "num_active_debit_accounts",
+                      "Number of currently active bank cards.",
+                      "Total number of currently open credit card accounts.",
+                      "Number of credit cards that are carrying a balance.",
+                      "The ownership status of the applicant's residence.",
+                      "Type of verification of the applicant's income.")
+
+tdata <- cbind(preds, c(rep("numeric", 10)
+                                  , rep("categorical", 2)),
+               descriptions)
+
+gen_kable(tdata, 
+          col_names = c("Variable Name", "Type", "Description"),
+          caption = "Predictors")
+```
+
+# Methods
+
+# Results
+
+# Discussion
+

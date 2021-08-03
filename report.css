@@ -1,0 +1,8 @@
+p, li, td {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.table caption {
+text-align: center;
+font-weight: bold;
+}
