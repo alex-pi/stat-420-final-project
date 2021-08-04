@@ -1,5 +1,5 @@
 ---
-title: 'Lending Club Interest Rate Model'
+title: 'Lending Club Interest Rate Study in R.'
 date: '8/3/2021'
 output:
   html_document: 
@@ -42,7 +42,7 @@ format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
     )
 }
 
-gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names = c(), row_names = c()) {
+gen_kable <- function(table_data, add_row_names = TRUE, caption = "", foot_text = "", col_names = c(), row_names = c()) {
   f_data <- format_numerics(table_data) 
   if(length(col_names) != 0){
     colnames(f_data) <- col_names
@@ -58,7 +58,7 @@ gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names 
                   full_width = F,
                   font_size = 14,
                   position = "center") %>%
-    footnote(general = "Table 1.1, Predictors.")
+    footnote(general = foot_text)
 }
 
 ```
@@ -97,7 +97,7 @@ This study aims to to find a `model` with a good balance between `Explanation` a
 
 ## Predictors of Interest
 
-We will limit our study to the `variables` shown below.
+We will limit our study to the `variables` shown below on `Table 1.1`. Note that this is an initial list based on our understanding of the dataset, the final `fitted model` will not necessarily reflect this.
 
 ```{r, class.source = 'fold-hide', warning=FALSE}
 
@@ -111,7 +111,7 @@ preds <- c("debt_to_income_joint",
                       "total_debit_limit",
                       "num_open_cc_accounts",
                       "num_cc_carrying_balance",
-                      "home_ownership",
+                      "homeownership",
                       "verified_income")
 
 descriptions <- c("Debt-to-income ratio for the two parties.",
@@ -120,8 +120,8 @@ descriptions <- c("Debt-to-income ratio for the two parties.",
                       "Number of installment accounts, which are (roughly) accounts with a fixed payment amount and period. A typical example might be a 36-month car loan.",
                       "Number of new lines of credit opened in the last 24 months.",
                       "Number of satisfactory accounts.",
-                      "num_active_debit_accounts",
                       "Number of currently active bank cards.",
+                      "Total of all bank card limits.",
                       "Total number of currently open credit card accounts.",
                       "Number of credit cards that are carrying a balance.",
                       "The ownership status of the applicant's residence.",
@@ -133,10 +133,112 @@ tdata <- cbind(preds, c(rep("numeric", 10)
 
 gen_kable(tdata, 
           col_names = c("Variable Name", "Type", "Description"),
-          caption = "Predictors")
+          caption = "Predictors", foot_text = "Table 1.1, Predictors.")
 ```
 
 # Methods
+
+## Utility functions.
+
+Here we define `functions` that will be of use during the study.
+
+The following `function` will help us to report diagnostics such as:
+
+- Normality.
+- Constant Variance.
+
+```{r, message = FALSE, warning = FALSE}
+library(lmtest)
+
+diagnostics <- function(model, alpha = 0.05) {
+
+  diags <- list()
+  p_val_st <- shapiro.test(model$residuals)$p.value
+  p_val_bp <- bptest(model)$p.value
+  diags$shapiro <- list(
+    "p_val" = p_val_st,
+    "decision" = ifelse(p_val_st < alpha, "Reject", "Fail to Reject"))
+  diags$bptest <- list(
+    "p_val" = p_val_bp,
+    "decision" = ifelse(p_val_bp < alpha, "Reject", "Fail to Reject"))
+  
+  diags
+}
+```
+
+The function below will show the `QQ` and `Fitted vs Residuals` plots for a given model.
+
+```{r}
+diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
+  par(mfrow = c(1, 2), bg="ghostwhite")
+  plot(model$fitted.values, model$residuals,  
+       col = pcol, pch = 20,
+       xlab = "Fitted", ylab = "Residuals",
+       main = "Fitted vs Residuals")
+  abline(h = 0, col = lcol, lwd = 2)
+  qqnorm(model$residuals, main = "Normal Q-Q Plot", 
+         col = pcol)
+  qqline(model$residuals, col = lcol, lwd = 2)
+}
+```
+
+
+## Variables Selection and Cleaning
+
+```{r}
+loans_data <- subset(loans_full_schema, 
+           select = c("interest_rate",
+                   #"debt_to_income_joint",
+                   "annual_income",
+                   "inquiries_last_12m",
+                   "total_credit_utilized",
+                   "current_installment_accounts",
+                   "accounts_opened_24m",
+                   "num_satisfactory_accounts",
+                   "num_active_debit_accounts",
+                   "total_debit_limit",
+                   "num_open_cc_accounts",
+                   "num_cc_carrying_balance",
+                   "homeownership",
+                   "verified_income"))
+
+# convert to categorical variables to factors
+loans_data$homeownership <- as.factor(loans_data$homeownership)
+loans_data$verified_income <- as.factor(loans_data$verified_income)
+```
+
+
+## Collinearity Analysis (Bryan)
+
+## Unusual Observations (Bryan)
+
+- leverage
+- outliers
+- influence
+
+## Divide Training and Testing Data (Alejandro)
+
+## Transformations (Alejandro)
+
+Cox transformation
+Polynomial 
+
+## Model Selection (Joshua)
+
+(AIC, BIC, Exhaustive)
+
+
+## LOOCV-RMSE Analysis (Joshua)
+
+
+## Final Model Diagnostics (Alejandro)
+
+
+
+
+Normality
+Constant Variance
+Linearity
 
 # Results
 

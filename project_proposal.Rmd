@@ -56,7 +56,7 @@ gen_kable <- function(table_data, add_row_names = TRUE, caption = "", col_names 
     kable_styling(bootstrap_options = c("striped", "hover"),
                   full_width = F,
                   font_size = 14,
-                  position = "center")
+                  position = "center") 
 }
 ```
 
