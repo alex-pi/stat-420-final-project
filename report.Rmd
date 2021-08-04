@@ -14,7 +14,8 @@ editor_options:
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-options(scipen = 1, digits = 4, width = 80, fig.align = "center")
+options(scipen = 1, digits = 4, width = 80, fig.align = "center",
+        fig.height = 5, fig.width = 7)
 ```
 
 *Utility functions defined here, click `Code` to see*
@@ -23,6 +24,7 @@ options(scipen = 1, digits = 4, width = 80, fig.align = "center")
 library(knitr)
 library(kableExtra)
 library(dplyr)
+library(MASS)
 
 format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
   # make sure is a data.frame, then format
@@ -183,7 +185,7 @@ diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
 ```
 
 
-## Variables Selection and Cleaning
+## Variables Selection and Data Preparation
 
 ```{r}
 loans_data <- subset(loans_full_schema, 
@@ -207,6 +209,19 @@ loans_data$homeownership <- as.factor(loans_data$homeownership)
 loans_data$verified_income <- as.factor(loans_data$verified_income)
 ```
 
+Divide Training and Testing Data.
+
+```{r}
+# Remove before submitting !!
+set.seed(420)
+
+idxs <- 1:nrow(loans_data)
+trn_idxs <- sample(idxs, 7000)
+
+# Train and Test sets
+loans_train <- loans_data[trn_idxs, ]
+loans_test <- loans_data[-trn_idxs, ]
+```
 
 ## Collinearity Analysis (Bryan)
 
@@ -216,12 +231,45 @@ loans_data$verified_income <- as.factor(loans_data$verified_income)
 - outliers
 - influence
 
-## Divide Training and Testing Data (Alejandro)
-
 ## Transformations (Alejandro)
 
-Cox transformation
-Polynomial 
+A first check into the `Linear Model Assuptions` suggests we might need to try some transformations.
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+additive_mod <- lm(interest_rate ~ ., data = loans_train)
+
+diagnostic_graph(additive_mod)
+```
+
+### Response Transformation
+
+Since our response variable `interest_rate` is a positive `numeric` value, we explore a `Box-Cox Transformation` as defined below.
+
+$$
+g_\lambda(y) = \left\{
+\begin{array}{lr}\displaystyle\frac{y^\lambda - 1}{\lambda} &  \lambda \neq 0\\
+        & \\
+       \log(y) &  \lambda = 0
+     \end{array}
+   \right.
+$$
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+par(mfrow=c(1, 1), bg="ghostwhite")
+boxcox(additive_mod, plotit = TRUE, lambda = seq(-0.8, 0.8, by = 0.1))
+```
+
+Since $\lambda \approx 0$, we try to apply a $log$ `transformation` of the `response`.
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+additive_mod <- lm(log(interest_rate) ~ ., data = loans_train)
+
+diagnostic_graph(additive_mod)
+```
+
+We noticed a significant improvement in the `QQ Plot`, yet we still see an obvious pattern in the `Fitted vs Residuals` plot.
+
+### Predictors Transformation
 
 ## Model Selection (Joshua)
 
