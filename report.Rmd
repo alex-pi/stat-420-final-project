@@ -273,10 +273,32 @@ We noticed a significant improvement in the `QQ Plot`, yet we still see an obvio
 
 ## Model Selection (Joshua)
 
-(AIC, BIC, Exhaustive)
+```{r}
+additive = lm(interest_rate ~ ., data = loans_train)
+interactive_two_way = lm(interest_rate ~ . ^2, data = loans_train)
+interactive_three_way = lm(interest_rate ~ . ^3, data = loans_train)
+
+n = length(resid(interactive_two_way))
+selected_aic = step(interactive_two_way, direction = "backward", trace = FALSE)
+selected_bic = step(interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+```
 
 
 ## LOOCV-RMSE Analysis (Joshua)
+```{r}
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
+min(calc_loocv_rmse(additive), 
+    calc_loocv_rmse(interactive_two_way),
+    calc_loocv_rmse(interactive_three_way),
+    calc_loocv_rmse(selected_aic),
+    calc_loocv_rmse(selected_bic))
+
+#selected_bic has the lowest loocv_rmse
+summary(selected_bic)
+```
 
 
 ## Final Model Diagnostics (Alejandro)
