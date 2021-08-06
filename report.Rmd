@@ -284,6 +284,16 @@ selected_bic = step(interactive_two_way, direction = "backward", k = log(n), tra
 ```
 
 
+```{r}
+log_additive = lm(log(interest_rate) ~ ., data = loans_train)
+log_interactive_two_way = lm(log(interest_rate) ~ . ^2, data = loans_train)
+log_interactive_three_way = lm(log(interest_rate) ~ . ^3, data = loans_train)
+
+n = length(resid(log_interactive_two_way))
+log_selected_aic = step(log_interactive_two_way, direction = "backward", trace = FALSE)
+log_selected_bic = step(log_interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+```
+
 ## LOOCV-RMSE Analysis (Joshua)
 ```{r}
 calc_loocv_rmse = function(model) {
@@ -296,8 +306,19 @@ min(calc_loocv_rmse(additive),
     calc_loocv_rmse(selected_aic),
     calc_loocv_rmse(selected_bic))
 
+min(calc_loocv_rmse(log_additive), 
+    calc_loocv_rmse(log_interactive_two_way),
+    calc_loocv_rmse(log_interactive_three_way),
+    calc_loocv_rmse(log_selected_aic),
+    calc_loocv_rmse(log_selected_bic))
+
 #selected_bic has the lowest loocv_rmse
 summary(selected_bic)
+summary(log_selected_bic)
+
+#selected bic using log has a higher r^2
+summary(selected_bic)$r.squared
+summary(log_selected_bic)$r.squared
 ```
 
 
