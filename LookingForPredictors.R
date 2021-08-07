@@ -34,6 +34,19 @@ loans_nona <- subset(loans_nona,
                        sub_grade
                      ))
 
+loans_nona <- subset(loans_nona,
+                     select = -c(num_satisfactory_accounts,
+                                 num_accounts_30d_past_due,
+                                 installment,
+                                 balance,
+                                 num_open_cc_accounts,
+                                 num_cc_carrying_balance,
+                                 num_historical_failed_to_pay,
+                                 paid_total,
+                                 paid_principal,
+                                 paid_interest,
+                                 paid_late_fees))
+
 loans_nona <- subset(loans_nona, 
                      select = -c(
                        homeownership,
@@ -56,7 +69,7 @@ loans_nona$term <- as.factor(loans_nona$term)
 sapply(loans_nona, function(x) sum(is.na(x)))
 
 idxs <- 1:nrow(loans_nona)
-ran_idx = sample(idxs, 2000)
+ran_idx = sample(idxs, 200)
 
 loans_sampled <- loans_nona[ran_idx, ]
 
@@ -64,25 +77,28 @@ small <- lm(log(interest_rate) ~ grade, data = loans_sampled)
 
 additive <- lm(log(interest_rate) ~ ., data = loans_sampled)
 
-additive2 <- lm(interest_rate ~ ., data = loans_sampled)
-
 slct_from_add <- step(additive, k = log(nrow(loans_sampled)), trace = 0)
 
 additive_nograde <- lm(log(interest_rate) ~ . - grade, data = loans_sampled)
 
 slct_from_add_nograde <- step(additive_nograde, k = log(nrow(loans_sampled)), trace = 0)
 
-#inter <- lm(log(interest_rate) ~ .^2, data = loans_sampled)
+inter <- lm(log(interest_rate) ~ .^2, data = loans_sampled)
 
-#slct <- step(model, k = log(nrow(loans_sampled)), trace = 0)
+slct_from_inter <- step(inter, k = log(nrow(loans_sampled)), trace = 0)
 
-summary(additive2)$r.squared
-summary(additive2)$adj.r.squared
+summary(additive)$r.squared
+summary(additive)$adj.r.squared
+
+summary(slct_from_add)$r.squared
+summary(slct_from_add)$adj.r.squared
+
+anova(slct_from_add, additive)
 
 vif(slct_from_add_nograde)
 
 ## This 2 functions are in the report
-diagnostic_graph(additive2)
+diagnostic_graph(slct_from_add)
 diagnostics(slct_from_add)
 
 plot(interest_rate ~ debt_to_income, 
@@ -91,11 +107,51 @@ plot(interest_rate ~ debt_to_income,
 
 #pairs(loans_sampled)
 
+##### Trying transforms
+
+poly1 <- lm(log(interest_rate) ~ 
+              poly(debt_to_income, degree = 2, raw = TRUE) 
+            + delinq_2y 
+            + inquiries_last_12m 
+            + total_credit_lines 
+            + total_credit_limit 
+            + total_credit_utilized 
+            + accounts_opened_24m 
+            + num_active_debit_accounts 
+            + total_debit_limit 
+            + account_never_delinq_percent 
+            + balance 
+            + paid_total 
+            + paid_principal
+            , data = loans_sampled)
+
+poly_all <- lm(log(interest_rate) ~ 
+              poly(debt_to_income, degree = 3, raw = TRUE) 
+            + poly(delinq_2y, degree = 3, raw = TRUE)
+            + poly(inquiries_last_12m, degree = 3, raw = TRUE)
+            + poly(total_credit_lines, degree = 3, raw = TRUE)
+            + poly(total_credit_limit, degree = 3, raw = TRUE)
+            + poly(total_credit_utilized, degree = 3, raw = TRUE)
+            + poly(accounts_opened_24m, degree = 3, raw = TRUE)
+            + poly(num_active_debit_accounts, degree = 3, raw = TRUE)
+            + poly(total_debit_limit, degree = 3, raw = TRUE)
+            + poly(account_never_delinq_percent, degree = 3, raw = TRUE)
+            + poly(balance, degree = 3, raw = TRUE)
+            + poly(paid_total, degree = 3, raw = TRUE)
+            + poly(paid_principal, degree = 3, raw = TRUE)
+            , data = loans_sampled)
 
 
 
 
+diagnostic_graph(poly1)
+diagnostics(poly1)
 
+diagnostic_graph(poly_all)
+diagnostics(poly_all)
+
+diagnostic_graph(additive)
+diagnostics(additive)
 
 
 
