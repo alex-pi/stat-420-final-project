@@ -1,0 +1,337 @@
+---
+title: 'Lending Club Interest Rate Study in R.'
+date: '8/3/2021'
+output:
+  html_document: 
+    theme: readable
+    toc: yes  
+    code_folding: show
+  pdf_document: default
+css: report.css
+urlcolor: cyan
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80, fig.align = "center",
+        fig.height = 5, fig.width = 7)
+```
+
+*Utility functions defined here, click `Code` to see*
+
+```{r message=FALSE, warning=FALSE, class.source = 'fold-hide'}
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(MASS)
+
+format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
+  # make sure is a data.frame, then format
+  if(!is.data.frame(data)){
+    data <- as.data.frame(data)
+  }  
+  data %>% 
+    mutate_if(
+      is.numeric, 
+      function(x) {
+        if_else(
+          abs(x) < notation_threshold, 
+          formatC(x, digits = digits, format = "e"), 
+          formatC(x, digits = digits, format = "f", drop0trailing = FALSE)
+        )
+      }
+    )
+}
+
+gen_kable <- function(table_data, add_row_names = TRUE, caption = "", foot_text = "", col_names = c(), row_names = c()) {
+  f_data <- format_numerics(table_data) 
+  if(length(col_names) != 0){
+    colnames(f_data) <- col_names
+  }
+  if(length(row_names) != 0){
+    rownames(f_data) <- row_names
+  }  
+  f_data %>%
+  kable(., format = "html", row.names = add_row_names,
+        caption = caption, 
+        escape = FALSE) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"),
+                  full_width = F,
+                  font_size = 14,
+                  position = "center") %>%
+    footnote(general = foot_text)
+}
+
+```
+
+# Introduction
+
+## About the Data
+
+The dataset contains background data on loans made through the LendingClub platform, an online peer-to-peer lender in which investors were able provide personal loans to borrowers. The platform shut down in 2020. The data was publicly available through the LendingClub website prior to its shutdown, but is included in the `openintro` package in R.
+
+*From the R documentation:*
+
+> This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!
+
+The dataset can be accessed by installing the `R package` below.
+
+```{r, eval=FALSE}
+install.packages("openintro")
+```
+
+```{r, message=FALSE}
+library("openintro")
+```
+
+Number of variables: **`r dim(loans_full_schema)[2]`**
+
+Number of observations: **`r dim(loans_full_schema)[1]`**
+
+## Statement of interest
+
+We are interested in this dataset because it is a good example of the kind of data that will be analyzed in the private sector. Many industries consider income and credit history in making business decisions. Not only will this provide a quality learning opportunity involving real-world data, but will also provide a tangible example of statistical modeling experience that we can use as we continue our data science careers.
+
+## Goal of the Model
+
+This study aims to to find a `model` with a good balance between `Explanation` and `Prediction` of the `interest_rate`. We want to see what are the main `predictors` that explain such response among the observations. Based on those `predictors` we also want the model to have acceptable performance for `Prediction`.
+
+## Predictors of Interest
+
+We will limit our study to the `variables` shown below on `Table 1.1`. Note that this is an initial list based on our understanding of the dataset, the final `fitted model` will not necessarily reflect this.
+
+```{r, class.source = 'fold-hide', warning=FALSE}
+
+preds <- c("debt_to_income_joint",
+                      "inquiries_last_12m",
+                      "total_credit_utilized",
+                      "current_installment_accounts",
+                      "accounts_opened_24m",
+                      "num_satisfactory_accounts",
+                      "num_active_debit_accounts",
+                      "total_debit_limit",
+                      "num_open_cc_accounts",
+                      "num_cc_carrying_balance",
+                      "homeownership",
+                      "verified_income")
+
+descriptions <- c("Debt-to-income ratio for the two parties.",
+                      "Inquiries into the applicant's credit during the last 12 months.",
+                      "Total credit balance, excluding a mortgage.",
+                      "Number of installment accounts, which are (roughly) accounts with a fixed payment amount and period. A typical example might be a 36-month car loan.",
+                      "Number of new lines of credit opened in the last 24 months.",
+                      "Number of satisfactory accounts.",
+                      "Number of currently active bank cards.",
+                      "Total of all bank card limits.",
+                      "Total number of currently open credit card accounts.",
+                      "Number of credit cards that are carrying a balance.",
+                      "The ownership status of the applicant's residence.",
+                      "Type of verification of the applicant's income.")
+
+tdata <- cbind(preds, c(rep("numeric", 10)
+                                  , rep("categorical", 2)),
+               descriptions)
+
+gen_kable(tdata, 
+          col_names = c("Variable Name", "Type", "Description"),
+          caption = "Predictors", foot_text = "Table 1.1, Predictors.")
+```
+
+# Methods
+
+## Utility functions.
+
+Here we define `functions` that will be of use during the study.
+
+The following `function` will help us to report diagnostics such as:
+
+- Normality.
+- Constant Variance.
+
+```{r, message = FALSE, warning = FALSE}
+library(lmtest)
+
+diagnostics <- function(model, alpha = 0.05) {
+
+  diags <- list()
+  p_val_st <- shapiro.test(model$residuals)$p.value
+  p_val_bp <- bptest(model)$p.value
+  diags$shapiro <- list(
+    "p_val" = p_val_st,
+    "decision" = ifelse(p_val_st < alpha, "Reject", "Fail to Reject"))
+  diags$bptest <- list(
+    "p_val" = p_val_bp,
+    "decision" = ifelse(p_val_bp < alpha, "Reject", "Fail to Reject"))
+  
+  diags
+}
+```
+
+The function below will show the `QQ` and `Fitted vs Residuals` plots for a given model.
+
+```{r}
+diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
+  par(mfrow = c(1, 2), bg="ghostwhite")
+  plot(model$fitted.values, model$residuals,  
+       col = pcol, pch = 20,
+       xlab = "Fitted", ylab = "Residuals",
+       main = "Fitted vs Residuals")
+  abline(h = 0, col = lcol, lwd = 2)
+  qqnorm(model$residuals, main = "Normal Q-Q Plot", 
+         col = pcol)
+  qqline(model$residuals, col = lcol, lwd = 2)
+}
+```
+
+
+## Variables Selection and Data Preparation
+
+```{r}
+loans_data <- subset(loans_full_schema, 
+           select = c("interest_rate",
+                   #"debt_to_income_joint",
+                   "annual_income",
+                   "inquiries_last_12m",
+                   "total_credit_utilized",
+                   "current_installment_accounts",
+                   "accounts_opened_24m",
+                   "num_satisfactory_accounts",
+                   "num_active_debit_accounts",
+                   "total_debit_limit",
+                   "num_open_cc_accounts",
+                   "num_cc_carrying_balance",
+                   "homeownership",
+                   "verified_income"))
+
+# convert to categorical variables to factors
+loans_data$homeownership <- as.factor(loans_data$homeownership)
+loans_data$verified_income <- as.factor(loans_data$verified_income)
+```
+
+Divide Training and Testing Data.
+
+```{r}
+# Remove before submitting !!
+set.seed(420)
+
+idxs <- 1:nrow(loans_data)
+trn_idxs <- sample(idxs, 7000)
+
+# Train and Test sets
+loans_train <- loans_data[trn_idxs, ]
+loans_test <- loans_data[-trn_idxs, ]
+```
+
+## Collinearity Analysis (Bryan)
+
+## Unusual Observations (Bryan)
+
+- leverage
+- outliers
+- influence
+
+## Transformations (Alejandro)
+
+A first check into the `Linear Model Assuptions` suggests we might need to try some transformations.
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+additive_mod <- lm(interest_rate ~ ., data = loans_train)
+
+diagnostic_graph(additive_mod)
+```
+
+### Response Transformation
+
+Since our response variable `interest_rate` is a positive `numeric` value, we explore a `Box-Cox Transformation` as defined below.
+
+$$
+g_\lambda(y) = \left\{
+\begin{array}{lr}\displaystyle\frac{y^\lambda - 1}{\lambda} &  \lambda \neq 0\\
+        & \\
+       \log(y) &  \lambda = 0
+     \end{array}
+   \right.
+$$
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+par(mfrow=c(1, 1), bg="ghostwhite")
+boxcox(additive_mod, plotit = TRUE, lambda = seq(-0.8, 0.8, by = 0.1))
+```
+
+Since $\lambda \approx 0$, we try to apply a $log$ `transformation` of the `response`.
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+additive_mod <- lm(log(interest_rate) ~ ., data = loans_train)
+
+diagnostic_graph(additive_mod)
+```
+
+We noticed a significant improvement in the `QQ Plot`, yet we still see an obvious pattern in the `Fitted vs Residuals` plot.
+
+### Predictors Transformation
+
+## Model Selection (Joshua)
+
+```{r}
+additive = lm(interest_rate ~ ., data = loans_train)
+interactive_two_way = lm(interest_rate ~ . ^2, data = loans_train)
+interactive_three_way = lm(interest_rate ~ . ^3, data = loans_train)
+
+n = length(resid(interactive_two_way))
+selected_aic = step(interactive_two_way, direction = "backward", trace = FALSE)
+selected_bic = step(interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+```
+
+
+```{r}
+log_additive = lm(log(interest_rate) ~ ., data = loans_train)
+log_interactive_two_way = lm(log(interest_rate) ~ . ^2, data = loans_train)
+log_interactive_three_way = lm(log(interest_rate) ~ . ^3, data = loans_train)
+
+n = length(resid(log_interactive_two_way))
+log_selected_aic = step(log_interactive_two_way, direction = "backward", trace = FALSE)
+log_selected_bic = step(log_interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+```
+
+## LOOCV-RMSE Analysis (Joshua)
+```{r}
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
+min(calc_loocv_rmse(additive), 
+    calc_loocv_rmse(interactive_two_way),
+    calc_loocv_rmse(interactive_three_way),
+    calc_loocv_rmse(selected_aic),
+    calc_loocv_rmse(selected_bic))
+
+min(calc_loocv_rmse(log_additive), 
+    calc_loocv_rmse(log_interactive_two_way),
+    calc_loocv_rmse(log_interactive_three_way),
+    calc_loocv_rmse(log_selected_aic),
+    calc_loocv_rmse(log_selected_bic))
+
+#selected_bic has the lowest loocv_rmse
+summary(selected_bic)
+summary(log_selected_bic)
+
+#selected bic using log has a higher r^2
+summary(selected_bic)$r.squared
+summary(log_selected_bic)$r.squared
+```
+
+
+## Final Model Diagnostics (Alejandro)
+
+
+
+
+Normality
+Constant Variance
+Linearity
+
+# Results
+
+# Discussion
+
