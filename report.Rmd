@@ -292,7 +292,7 @@ Divide Training and Testing Data.
 set.seed(420)
 
 idxs <- 1:nrow(loans_data)
-trn_idxs <- sample(idxs, 5000) # CHANGE before submitting
+trn_idxs <- sample(idxs, 7000) # CHANGE before submitting
 
 ##### Remove before submitting
 #sample_idxs <- sample(idxs, 1500)
@@ -465,7 +465,9 @@ gen_kable(model_metrics,
           foot_text = "Table 1")
 ```
 
-# Model diagnostics
+## Model Assumptions Results
+
+`Table 2` below shows the `p-values` for the `Normality` and `Constant Variance` tests given the models we tried in this study.
 
 ```{r}
 diags_data = data.frame(
@@ -482,7 +484,42 @@ gen_kable(diags_data,
 ```
 
 
+Below we show the `QQ` and `Fitted vs Residuales` plots for 2 of those models. We take 1 additive and 1 interaction model for illustration.
+
+**Plot 2.1 Additive model without response transformation**
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+
+diagnostic_graph(models$additive)
+```
+
+**Plot 2.2 Interactions model with $log$ transformation of the response**
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+
+diagnostic_graph(models$log_interactive)
+```
+
+
+
 # Discussion
 
 Two sets of models were developed `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors which did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
+## Model Assumptions
+
+`Table 2, Models Diagnostics` shows **extremely low** `p-values` so we can easily say that `Normality` and `Constant Variance` assumptions. Perhaps we missed some transformations of the `predictors` that could help getting better `p-values`. It is likely that linearity `Assumtion` is also violated.
+
+One thing we clearly observed is that the `Box-Cox Transformation` (i.e. log), improves the `QQ Plot` considerably.
+
+If we analyze the `p-values` for the $\hat\beta$ parameters in one of the fitted models we `could` argue that they are significant. The same could be said about the `Significance of the Regression` test.
+
+```{r}
+summ_example = summary(models$log_selected_bic)
+
+gen_kable(summ_example$coef)
+```
+
+Unfortunately, we can hardly trust these results given the evidence of Assumption Violations found.
+
+
 
