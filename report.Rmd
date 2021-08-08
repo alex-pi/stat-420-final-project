@@ -105,7 +105,7 @@ model_with_grade = lm(interest_rate ~ grade, data = loans_full_schema)
 r2_w_grade = summary(model_with_grade)$r.squared
 ```
 
-Given the high $R^2$ value of `r r2_w_grade`. Seems like it explains our `response` variable very well.
+Given the high $R^2$ value of `r r2_w_grade`, it seems like it explains our `response` variable very well. This is confirmed by the [LendingClub documentation](https://www.lendingclub.com/foliofn/rateDetail.action), which indicates that each grade/subgrade combo corresponds to a different interest rate.
 
 Our goal in this study is to look for a model using a set of the other predictors that can also explain the `interest_rate`.
 
@@ -158,9 +158,7 @@ diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
 
 ## Variables Selection and Data Preparation
 
-- For simplicity we start removing a few columns that have many `NA` values.
-- Remove some not relevant variables like dates and descriptions.
-- For this study we also remove `grade` and `sub_grade`.
+For simplicity we start removing a few columns that have many `NA` values. We will also remove some irrelevant variables like dates and descriptions. Additionally, we will remove `grade`, `subgrade`, and the results of the interest rate - `installment`, `balance`, and the details on payments.
 
 ```{r}
 ## Remove columns with many NAs
@@ -209,13 +207,81 @@ loans_data <- subset(loans_data,
                      ))
 ```
 
-Convert some variables to `factors`.
+We will also convert some character-structured data to factors. Additionally, although `term` appears to be numerical, it appears there are only two options for loan terms - a 3-year loan (36 months) and a 5-year loan (60 months). Thus, we will structure this as a factor.
 
 ```{r}
 loans_data$homeownership <- as.factor(loans_data$homeownership)
 loans_data$verified_income <- as.factor(loans_data$verified_income)
 loans_data$application_type <- as.factor(loans_data$application_type)
 loans_data$term <- as.factor(loans_data$term)
+```
+
+## Collinearity Analysis (Bryan)
+
+Now that we have divided our data, we will further analyze for collinear variables.
+
+```{r}
+##Numerical dataframe for correlations
+loans_num = subset(loans_data, select = -c(homeownership, verified_income, loan_purpose, application_type, term))
+
+round(cor(loans_num), 3)
+
+cor(loans_num) > 0.8
+```
+
+The first thing we notice is that we get `NA` values for the correlations on `current_accounts_delinq` and `num_accounts_30d_past_due`. For simplicities sake, we will remove these predictors.
+
+Additionally, we notice that the following pairs are highly collinear (correlation > 0.8):
+
+`open_credit_lines` and `num_satisfactory_accounts`
+`open_credit_lines` and `num_open_cc_accounts`
+`num_open_cc_accounts` and `num_satisfactory_accounts`
+`num_active_debit_accounts` and `num_cc_carrying_balance`
+`num_total_cc_accounts` and `num_open_cc_accounts`
+`num_historical_failed_to_pay` and `tax_liens`
+
+From these pairs, we will remove `num_open_cc_accounts` and `open_credit_lines`, as each correlates highly with multiple variables. Next we will fit a basic additive model with the remaining predictors for the purpose of analyzing the VIF.
+
+```{r}
+loans_data = subset(loans_data, select = -c(current_accounts_delinq,
+                                            num_accounts_30d_past_due,
+                                            num_open_cc_accounts,
+                                            open_credit_lines))
+
+add_model_vif = lm(interest_rate ~ ., data = loans_data)
+vif(add_model_vif)[vif(add_model_vif) > 5]
+```
+
+One of the first things I notice in this VIF is the abundnace of `loan_purpose`. As loan purpose is a factor variable with 14 levels, it "clogs" the model with dummy variables. Conceptually, it also makes sense that it would be highly collinear - somebody obtaining a loan for "debt consolidation", for instance, likely has indicators of high debt in the other predictors. Thus, we will remove that variable and refit the model.
+
+```{r}
+loans_data = subset(loans_data, select = -c(loan_purpose))
+add_model_vif = lm(interest_rate ~ ., data = loans_data)
+vif(add_model_vif)[vif(add_model_vif) > 5]
+```
+
+It appears that `loan_amount` has by far the largest collinearity, so we will remove that from the dataset as well.
+
+```{r}
+loans_data = subset(loans_data, select = -c(loan_amount))
+add_model_vif = lm(interest_rate ~ ., data = loans_data)
+vif(add_model_vif)[vif(add_model_vif) > 5]
+```
+
+Now, all predictors have a VIF value below 10, but still above our target benchmark of 5. We will continue to remove the highest VIF from our predictors.
+
+```{r}
+loans_data = subset(loans_data, select = -c(num_satisfactory_accounts))
+add_model_vif = lm(interest_rate ~ ., data = loans_data)
+vif(add_model_vif)[vif(add_model_vif) > 5]
+```
+
+While the remaining VIF values are close to our benchmark of 5, we will choose to remove `total_credit_lines` for consistency sake. Removing this variable eliminates all collinearity issues.
+
+```{r}
+loans_data = subset(loans_data, select = -c(total_credit_lines))
+add_model_vif = lm(interest_rate ~ ., data = loans_data)
+vif(add_model_vif)
 ```
 
 Divide Training and Testing Data.
@@ -228,22 +294,14 @@ idxs <- 1:nrow(loans_data)
 trn_idxs <- sample(idxs, 1200) # CHANGE before submitting
 
 ##### Remove before submitting
-sample_idxs <- sample(idxs, 1500)
-loans_data <- loans_data[sample_idxs, ]
+#sample_idxs <- sample(idxs, 1500)
+#loans_data <- loans_data[sample_idxs, ]
 #####
 
 # Train and Test sets
 loans_train <- loans_data[trn_idxs, ]
 loans_test <- loans_data[-trn_idxs, ]
 ```
-
-## Collinearity Analysis (Bryan)
-
-## Unusual Observations (Bryan)
-
-- leverage
-- outliers
-- influence
 
 ## Transformations (Alejandro)
 
@@ -356,6 +414,12 @@ log_interactive = lm(log(interest_rate) ~ (verified_income + debt_to_income +
     public_record_bankrupt + term) ^ 2, data = loans_train)
 ```
 
+
+## Unusual Observations (Bryan)
+
+- leverage
+- outliers
+- influence
 
 ## Final Model Diagnostics (Alejandro)
 
