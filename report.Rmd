@@ -243,6 +243,7 @@ Additionally, we notice that the following pairs are highly collinear (correlati
 From these pairs, we will remove `num_open_cc_accounts` and `open_credit_lines`, as each correlates highly with multiple variables. Next we will fit a basic additive model with the remaining predictors for the purpose of analyzing the VIF.
 
 ```{r}
+library(faraway)
 loans_data = subset(loans_data, select = -c(current_accounts_delinq,
                                             num_accounts_30d_past_due,
                                             num_open_cc_accounts,
@@ -476,10 +477,12 @@ diags_data = data.frame(
 gen_kable(diags_data,
           col_names = c("Shapiro Test p-value", "BP test p-value"),
           caption = "Models Diagnostics",
-          foot_text = "Table 1")
+          foot_text = "Table 2")
 
 ```
 
 
 # Discussion
+
+Two sets of models were developed `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors which did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
 
