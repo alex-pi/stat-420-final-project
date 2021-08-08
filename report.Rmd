@@ -306,7 +306,7 @@ loans_test <- loans_data[-trn_idxs, ]
 
 ## Transformations (Alejandro)
 
-A first check into the linear model assuptions suggests we might need to try some transformations.
+A first check into the linear model assumptions suggests we might need to try some transformations.
 
 ```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
 additive_mod <- lm(interest_rate ~ ., data = loans_train)
@@ -381,7 +381,7 @@ From the plots above, there is no obvious correlation from which we can decide a
 
 ```{r}
 generate_models = function(training_data, subset_model = TRUE) {
-  additive = lm(interest_rate ~ . - num_cc_carrying_balance - num_historical_failed_to_pay - num_total_cc_accounts, data = training_data, subset=subset_model)
+  additive = lm(interest_rate ~ ., data = training_data, subset=subset_model)
   
   n = length(resid(additive))
   selected_aic = step(additive, direction = "backward", trace = FALSE)
@@ -391,7 +391,7 @@ generate_models = function(training_data, subset_model = TRUE) {
   interaction_formula = update(as.formula(selected_aic), ~. ^2)
   interactive = lm(formula=interaction_formula, data = training_data, subset=subset_model)
   
-  log_additive = lm(log(interest_rate) ~ . - num_cc_carrying_balance - num_historical_failed_to_pay  - num_total_cc_accounts, data = training_data, subset=subset_model)
+  log_additive = lm(log(interest_rate) ~ ., data = training_data, subset=subset_model)
   
   n = length(resid(log_additive))
   log_selected_aic = step(log_additive, direction = "backward", trace = FALSE)
