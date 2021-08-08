@@ -240,7 +240,7 @@ loans_data <- subset(loans_data,
                      ))
 ```
 
-Convert some variables to `fators`.
+Convert some variables to `factors`.
 
 ```{r}
 loans_data$homeownership <- as.factor(loans_data$homeownership)
@@ -255,13 +255,13 @@ Divide Training and Testing Data.
 # Remove before submitting !!
 set.seed(420)
 
+idxs <- 1:nrow(loans_data)
+trn_idxs <- sample(idxs, 1200) # CHANGE before submitting
+
 ##### Remove before submitting
 sample_idxs <- sample(idxs, 1500)
 loans_data <- loans_data[sample_idxs, ]
 #####
-
-idxs <- 1:nrow(loans_data)
-trn_idxs <- sample(idxs, 1200) # CHANGE before submitting
 
 # Train and Test sets
 loans_train <- loans_data[trn_idxs, ]
