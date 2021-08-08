@@ -467,7 +467,7 @@ model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC
 
 gen_kable(model_metrics,
           caption = "Model Metrics",
-          foot_text = "Table 1.2")
+          foot_text = "Table 1")
 ```
 
 # Model diagnostics
@@ -482,7 +482,7 @@ diags_data = data.frame(
 gen_kable(diags_data,
           col_names = c("Shapiro Test p-value", "BP test p-value"),
           caption = "Models Diagnostics",
-          foot_text = "Table 1.3")
+          foot_text = "Table 1")
 
 ```
 
