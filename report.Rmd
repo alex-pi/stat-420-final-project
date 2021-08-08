@@ -109,49 +109,6 @@ Given the high $R^2$ value of `r r2_w_grade`. Seems like it explains our `respon
 
 Our goal in this study is to look for a model using a set of the other predictors that can also explain the `interest_rate`.
 
-## Predictors of Interest
-
-After a preliminary analysis of the dataset we can see how some variables have potential to explain the `response`. Note that this is an initial list based on our understanding of the dataset, the final `fitted model` will not necessarily reflect this.
-
-```{r, class.source = 'fold-hide', warning=FALSE}
-
-preds <- c("debt_to_income_joint",
-                      "inquiries_last_12m",
-                      "total_credit_utilized",
-                      "current_installment_accounts",
-                      "accounts_opened_24m",
-                      "num_satisfactory_accounts",
-                      "num_active_debit_accounts",
-                      "total_debit_limit",
-                      "num_open_cc_accounts",
-                      "num_cc_carrying_balance",
-                      "homeownership",
-                      "verified_income",
-                      "annual_income")
-
-descriptions <- c("Debt-to-income ratio for the two parties.",
-                      "Inquiries into the applicant's credit during the last 12 months.",
-                      "Total credit balance, excluding a mortgage.",
-                      "Number of installment accounts, which are (roughly) accounts with a fixed payment amount and period. A typical example might be a 36-month car loan.",
-                      "Number of new lines of credit opened in the last 24 months.",
-                      "Number of satisfactory accounts.",
-                      "Number of currently active bank cards.",
-                      "Total of all bank card limits.",
-                      "Total number of currently open credit card accounts.",
-                      "Number of credit cards that are carrying a balance.",
-                      "The ownership status of the applicant's residence.",
-                      "Type of verification of the applicant's income.",
-                      "Annual income")
-
-tdata <- cbind(preds, c(rep("numeric", 10)
-                                  , rep("categorical", 2)),
-               descriptions)
-
-gen_kable(tdata, 
-          col_names = c("Variable Name", "Type", "Description"),
-          caption = "Predictors", foot_text = "Table 1.1, Predictors.")
-```
-
 # Methods
 
 ## Utility functions.
@@ -238,6 +195,18 @@ loans_data <- subset(loans_data,
                        grade,
                        sub_grade
                      ))
+
+## Conceptually we should remove the following field,
+## as they are a result of the interest rate.
+loans_data <- subset(loans_data, 
+                     select = -c(
+                      paid_total,
+                      paid_principal,
+                      paid_interest,
+                      paid_late_fees,
+                      installment,
+                      balance
+                     ))
 ```
 
 Convert some variables to `factors`.
@@ -315,6 +284,39 @@ diagnostic_graph(additive_mod)
 We noticed a significant improvement in the `QQ Plot`, yet we still see an obvious pattern in the `Fitted vs Residuals` plot.
 
 ### Predictors Transformation
+
+Below plots show the relation between 4 the predictors and the response.
+
+```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+par(mfrow=c(2, 2), bg="ghostwhite")
+
+plot(interest_rate ~ accounts_opened_24m, 
+     xlab = "Predictor (accounts_opened_24m)",
+     ylab = "Response (interest_rate)",
+     data = loans_data, col = "deepskyblue3", pch = 20,
+     main = "Accounts Opened vs Interest Rate")
+
+plot(interest_rate ~ total_debit_limit, 
+     xlab = "Predictor (total_debit_limit)",
+     ylab = "Response (interest_rate)",
+     data = loans_data, col = "deepskyblue3", pch = 20,
+     main = "Total Debit Limit vs Interest Rate")
+
+plot(interest_rate ~ installment, 
+     xlab = "Predictor (installment)",
+     ylab = "Response (interest_rate)",
+     data = loans_data, col = "deepskyblue3", pch = 20,
+     main = "Installment (monthly payment) vs Interest Rate")
+
+plot(interest_rate ~ total_credit_limit, 
+     xlab = "Predictor (total_credit_limit)",
+     ylab = "Response (interest_rate)",
+     data = loans_data, col = "deepskyblue3", pch = 20,
+     main = "Total Credit Limit vs Interest Rate")
+
+```
+
+From the plots above, there is no obvious correlation from which we can decide a transformation to apply. In fact, we tried a few of them without noticing much improvement in the `QQ plot` and `Fitted vs Residuals`.
 
 ## Model Selection (Joshua)
 
