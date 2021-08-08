@@ -28,12 +28,14 @@ loans_nona <- na.omit(loans_nona)
 loans_nona <- subset(loans_nona, 
                      select = -c(
                        loan_status,
+                       
                        initial_listing_status,
                        disbursement_method,
                        grade,
                        sub_grade
                      ))
 
+# Remove due to collinearity
 loans_nona <- subset(loans_nona,
                      select = -c(num_satisfactory_accounts,
                                  num_accounts_30d_past_due,
@@ -45,7 +47,10 @@ loans_nona <- subset(loans_nona,
                                  paid_total,
                                  paid_principal,
                                  paid_interest,
-                                 paid_late_fees))
+                                 paid_late_fees,
+                                 loan_purpose,
+                                 #num_total_cc_accounts
+                                 ))
 
 loans_nona <- subset(loans_nona, 
                      select = -c(
@@ -62,6 +67,7 @@ loans_nona$homeownership <- as.factor(loans_nona$homeownership)
 loans_nona$verified_income <- as.factor(loans_nona$verified_income)
 loans_nona$application_type <- as.factor(loans_nona$application_type)
 loans_nona$term <- as.factor(loans_nona$term)
+#loans_nona$delinq_2y <- as.factor(loans_nona$delinq_2y)
 #loans_nona$grade <- as.factor(loans_nona$grade)
 #loans_nona$sub_grade <- as.factor(loans_nona$sub_grade)
 
@@ -69,7 +75,7 @@ loans_nona$term <- as.factor(loans_nona$term)
 sapply(loans_nona, function(x) sum(is.na(x)))
 
 idxs <- 1:nrow(loans_nona)
-ran_idx = sample(idxs, 200)
+ran_idx = sample(idxs, 7000)
 
 loans_sampled <- loans_nona[ran_idx, ]
 
@@ -79,7 +85,11 @@ additive <- lm(log(interest_rate) ~ ., data = loans_sampled)
 
 slct_from_add <- step(additive, k = log(nrow(loans_sampled)), trace = 0)
 
+vif(slct_from_add)
+
 additive_nograde <- lm(log(interest_rate) ~ . - grade, data = loans_sampled)
+
+
 
 slct_from_add_nograde <- step(additive_nograde, k = log(nrow(loans_sampled)), trace = 0)
 
@@ -87,8 +97,8 @@ inter <- lm(log(interest_rate) ~ .^2, data = loans_sampled)
 
 slct_from_inter <- step(inter, k = log(nrow(loans_sampled)), trace = 0)
 
-summary(additive)$r.squared
-summary(additive)$adj.r.squared
+summary(slct_from_add)$r.squared
+summary(slct_from_add)$adj.r.squared
 
 summary(slct_from_add)$r.squared
 summary(slct_from_add)$adj.r.squared
@@ -109,8 +119,9 @@ plot(interest_rate ~ debt_to_income,
 
 ##### Trying transforms
 
-poly1 <- lm(log(interest_rate) ~ 
-              poly(debt_to_income, degree = 2, raw = TRUE) 
+inter <- lm(log(interest_rate) ~ 
+              (verified_income
+            + debt_to_income
             + delinq_2y 
             + inquiries_last_12m 
             + total_credit_lines 
@@ -122,8 +133,11 @@ poly1 <- lm(log(interest_rate) ~
             + account_never_delinq_percent 
             + balance 
             + paid_total 
-            + paid_principal
+            + paid_principal)^2
             , data = loans_sampled)
+
+slct_from_inter <- step(inter, k = log(nrow(loans_sampled)), trace = 0)
+
 
 poly_all <- lm(log(interest_rate) ~ 
               poly(debt_to_income, degree = 3, raw = TRUE) 
@@ -153,5 +167,40 @@ diagnostics(poly_all)
 diagnostic_graph(additive)
 diagnostics(additive)
 
+test1 <- lm(log(interest_rate) ~  
+            + verified_income
+            + debt_to_income
+            + delinq_2y
+            + inquiries_last_12m
+            + total_credit_lines
+            + poly(total_credit_limit, degree = 2, raw = TRUE)
+            + total_credit_utilized
+            + accounts_opened_24m
+            + total_debit_limit
+            + num_open_cc_accounts
+            + num_cc_carrying_balance
+            + num_mort_accounts
+            + account_never_delinq_percent
+            + loan_amount
+            + term
+            + installment
+            + paid_total
+            + paid_principal
+            , data = loans_sampled)
 
+diagnostic_graph(test1)
+diagnostics(test1)
+
+test2 <- lm(log(interest_rate) ~ 
+              #poly(total_credit_limit, degree = 4, raw = TRUE)
+              exp(total_credit_limit)
+            , data = loans_sampled)
+
+diagnostic_graph(test2)
+diagnostics(test2)
+
+
+predict(test1, newdata = data.frame(
+  delinq_2y = "14"
+))
 
