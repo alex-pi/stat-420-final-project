@@ -33,5 +33,31 @@ loans_sampled = subset(loans_sampled, select = -c(num_open_cc_accounts,
                                                   paid_interest,
                                                   paid_late_fees))
 add_model = lm(interest_rate ~ ., data = loans_sampled)
-vif(add_model)[vif(add_model) > 5]
+round(vif(add_model)[vif(add_model) > 5],2)
 length(coef(add_model))
+
+# loans_sampled = subset(loans_sampled, select = -c(total_collection_amount_ever))
+# add_model = lm(interest_rate ~ ., data = loans_sampled)
+# log_model = lm(log(interest_rate) ~ ., data = loans_sampled)
+# 
+# vif(add_model)[vif(add_model) > 5]
+# vif(log_model)[vif(log_model) > 5]
+# 
+# loans_sampled = subset(loans_sampled, select = -c(total_debit_limit,
+#                                                   account_never_delinq_percent))
+# add_model = lm(interest_rate ~ ., data = loans_sampled)
+# log_model = lm(log(interest_rate) ~ ., data = loans_sampled)
+# 
+# loans_sampled = subset(loans_sampled, select = -c(num_mort_accounts))
+# add_model = lm(interest_rate ~ ., data = loans_sampled)
+# log_model = lm(log(interest_rate) ~ ., data = loans_sampled)
+# 
+# loans_sampled = subset(loans_sampled, select = -c(num_total_cc_accounts))
+# 
+# add_model = lm(interest_rate ~ ., data = loans_sampled)
+# log_model = lm(log(interest_rate) ~ ., data = loans_sampled)
+
+loans_sampled = subset(loans_sampled, select = -c(loan_purpose))
+
+add_model = lm(interest_rate ~ ., data = loans_sampled)
+log_model = lm(log(interest_rate) ~ ., data = loans_sampled)
