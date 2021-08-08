@@ -194,7 +194,7 @@ loans_data <- subset(loans_data,
                        sub_grade
                      ))
 
-## Conceptually we should remove the following field,
+## Conceptually we should remove the following variables,
 ## as they are a result of the interest rate.
 loans_data <- subset(loans_data, 
                      select = -c(
@@ -400,6 +400,7 @@ log_selected_bic = step(log_additive, direction = "backward", k = log(n), trace 
 ```
 
 ##Generate interactive model from best selected
+
 ```{r}
 interactive = lm(interest_rate ~ (verified_income + debt_to_income + 
     delinq_2y + inquiries_last_12m + total_credit_lines + total_credit_limit + 
@@ -421,14 +422,31 @@ log_interactive = lm(log(interest_rate) ~ (verified_income + debt_to_income +
 - outliers
 - influence
 
-## Final Model Diagnostics (Alejandro)
+## Model diagnostics for assumptions (Alejandro)
 
+Below we use our function to diagnose the models assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
 
+```{r}
 
+sample_idxs <- sample(idxs, 5000)
+loans_data_small <- loans_data[sample_idxs, ]
 
-Normality
-Constant Variance
-Linearity
+## Convert Joshua's code to functions so I can reuse them here with a
+## smaller data set.
+
+additive_diag = diagnostics(additive)
+selected_aic_diag = diagnostics(selected_aic)
+selected_bic_diag = diagnostics(selected_bic)
+
+log_additive_diag = diagnostics(log_additive)
+log_selected_aic_diag = diagnostics(log_selected_aic)
+log_selected_bic_diag = diagnostics(log_selected_bic)
+
+interactive_diag = diagnostics(interactive)
+log_interactive_diag = diagnostics(log_interactive)
+
+```
+
 
 # Results
 
@@ -453,6 +471,20 @@ gen_kable(model_metrics,
           caption = "Model Metrics")
 ```
 
+# Model diagnostics
+
+```{r}
+diags_data = data.frame(
+  row.names = c("additive_diag","selected_aic_diag","selected_bic_diag","log_additive_diag","log_selected_aic_diag","log_selected_bic_diag","interactive_diag","log_interactive_diag"),
+  "Shapiro Test p-value" = c(additive_diag$shapiro$p_val,selected_aic_diag$shapiro$p_val,selected_bic_diag$shapiro$p_val,log_additive_diag$shapiro$p_val,log_selected_aic_diag$shapiro$p_val,log_selected_bic_diag$shapiro$p_val,interactive_diag$shapiro$p_val,log_interactive_diag$shapiro$p_val),
+  "BP test p-value" = c(additive_diag$bptest$p_val,selected_aic_diag$bptest$p_val,selected_bic_diag$bptest$p_val,log_additive_diag$bptest$p_val,log_selected_aic_diag$bptest$p_val,log_selected_bic_diag$bptest$p_val,interactive_diag$bptest$p_val,log_interactive_diag$bptest$p_val)
+)
+
+gen_kable(diags_data,
+          col_names = c("Shapiro Test p-value", "BP test p-value"),
+          caption = "Models Diagnostics")
+
+```
 
 
 # Discussion
