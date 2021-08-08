@@ -379,39 +379,32 @@ From the plots above, there is no obvious correlation from which we can decide a
 ## Model Selection (Joshua)
 
 ```{r}
-additive = lm(interest_rate ~ . - num_cc_carrying_balance - num_historical_failed_to_pay - num_total_cc_accounts, data = loans_train)
-
-n = length(resid(additive))
-selected_aic = step(additive, direction = "backward", trace = FALSE)
-selected_bic = step(additive, direction = "backward", k = log(n), trace = FALSE)
+generate_models = function(training_data, subset_model = TRUE) {
+  additive = lm(interest_rate ~ . - num_cc_carrying_balance - num_historical_failed_to_pay - num_total_cc_accounts, data = training_data, subset=subset_model)
+  
+  n = length(resid(additive))
+  selected_aic = step(additive, direction = "backward", trace = FALSE)
+  selected_bic = step(additive, direction = "backward", k = log(n), trace = FALSE)
+  
+  #generate an interaction model from selected aic
+  interaction_formula = update(as.formula(selected_aic), ~. ^2)
+  interactive = lm(formula=interaction_formula, data = training_data, subset=subset_model)
+  
+  log_additive = lm(log(interest_rate) ~ . - num_cc_carrying_balance - num_historical_failed_to_pay  - num_total_cc_accounts, data = training_data, subset=subset_model)
+  
+  n = length(resid(log_additive))
+  log_selected_aic = step(log_additive, direction = "backward", trace = FALSE)
+  log_selected_bic = step(log_additive, direction = "backward", k = log(n), trace = FALSE)
+  
+  #generate an interaction model from log selected aic
+  interaction_formula = update(as.formula(log_selected_aic), ~. ^2)
+  log_interactive = lm(formula=interaction_formula, data = training_data, subset=subset_model)
+  
+  newList = list("additive" = additive, "selected_aic" = selected_aic, "selected_bic" = selected_bic, "interactive" = interactive, 
+                 "log_additive" = log_additive, "log_selected_aic" = log_selected_aic, "log_selected_bic" = log_selected_bic, "log_interactive" = log_interactive)
+  return (newList)
+}
 ```
-
-
-```{r}
-log_additive = lm(log(interest_rate) ~ .
-- num_cc_carrying_balance - num_historical_failed_to_pay  - num_total_cc_accounts, data = loans_train)
-
-n = length(resid(log_additive))
-log_selected_aic = step(log_additive, direction = "backward", trace = FALSE)
-log_selected_bic = step(log_additive, direction = "backward", k = log(n), trace = FALSE)
-```
-
-##Generate interactive model from best selected
-
-```{r}
-interactive = lm(interest_rate ~ (verified_income + debt_to_income + 
-    delinq_2y + inquiries_last_12m + total_credit_limit + 
-    total_credit_utilized + accounts_opened_24m + num_active_debit_accounts + 
-    total_debit_limit + num_mort_accounts + account_never_delinq_percent + 
-    term) ^ 2, data = loans_train)
-
-log_interactive = lm(log(interest_rate) ~ (verified_income + debt_to_income + 
-    delinq_2y + inquiries_last_12m + total_credit_limit + 
-    total_credit_utilized + accounts_opened_24m + num_active_debit_accounts + 
-    total_debit_limit + num_mort_accounts + account_never_delinq_percent + 
-    public_record_bankrupt + term) ^ 2, data = loans_train)
-```
-
 
 ## Unusual Observations (Bryan)
 
@@ -430,17 +423,18 @@ loans_data_small <- loans_data[sample_idxs, ]
 
 ## Convert Joshua's code to functions so I can reuse them here with a
 ## smaller data set.
+models = generate_models(loans_data_small)
 
-additive_diag = diagnostics(additive)
-selected_aic_diag = diagnostics(selected_aic)
-selected_bic_diag = diagnostics(selected_bic)
+additive_diag = diagnostics(models$additive)
+selected_aic_diag = diagnostics(models$selected_aic)
+selected_bic_diag = diagnostics(models$selected_bic)
 
-log_additive_diag = diagnostics(log_additive)
-log_selected_aic_diag = diagnostics(log_selected_aic)
-log_selected_bic_diag = diagnostics(log_selected_bic)
+log_additive_diag = diagnostics(models$log_additive)
+log_selected_aic_diag = diagnostics(models$log_selected_aic)
+log_selected_bic_diag = diagnostics(models$log_selected_bic)
 
-interactive_diag = diagnostics(interactive)
-log_interactive_diag = diagnostics(log_interactive)
+interactive_diag = diagnostics(models$interactive)
+log_interactive_diag = diagnostics(models$log_interactive)
 
 ```
 
@@ -454,11 +448,11 @@ calc_loocv_rmse = function(model) {
   sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
 }
 
-adjrsquared = c(summary(additive)$adj.r.squared, summary(selected_aic)$adj.r.squared, summary(selected_bic)$adj.r.squared,
-                summary(interactive)$adj.r.squared, summary(log_additive)$adj.r.squared, summary(log_selected_aic)$adj.r.squared,
-                summary(log_selected_bic)$adj.r.squared, summary(log_interactive)$adj.r.squared)
-loocv_rmse = c(calc_loocv_rmse(additive), calc_loocv_rmse(selected_aic), calc_loocv_rmse(selected_bic), calc_loocv_rmse(interactive),
-               calc_loocv_rmse(log_additive), calc_loocv_rmse(log_selected_aic), calc_loocv_rmse(log_selected_bic), calc_loocv_rmse(log_interactive))
+adjrsquared = c(summary(models$additive)$adj.r.squared, summary(models$selected_aic)$adj.r.squared, summary(models$selected_bic)$adj.r.squared,
+                summary(models$interactive)$adj.r.squared, summary(models$log_additive)$adj.r.squared, summary(models$log_selected_aic)$adj.r.squared,
+                summary(models$log_selected_bic)$adj.r.squared, summary(models$log_interactive)$adj.r.squared)
+loocv_rmse = c(calc_loocv_rmse(models$additive), calc_loocv_rmse(models$selected_aic), calc_loocv_rmse(models$selected_bic), calc_loocv_rmse(models$interactive),
+               calc_loocv_rmse(models$log_additive), calc_loocv_rmse(models$log_selected_aic), calc_loocv_rmse(models$log_selected_bic), calc_loocv_rmse(models$log_interactive))
 
 model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
                   "Adjusted R^2" = adjrsquared,
