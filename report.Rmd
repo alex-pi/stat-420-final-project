@@ -242,7 +242,7 @@ Additionally, we notice that the following pairs are highly collinear (correlati
 
 From these pairs, we will remove `num_open_cc_accounts` and `open_credit_lines`, as each correlates highly with multiple variables. Next we will fit a basic additive model with the remaining predictors for the purpose of analyzing the VIF.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(faraway)
 loans_data = subset(loans_data, select = -c(current_accounts_delinq,
                                             num_accounts_30d_past_due,
@@ -255,7 +255,7 @@ vif(add_model_vif)[vif(add_model_vif) > 5]
 
 One of the first things we notice in this VIF is the abundance of `loan_purpose`. As loan purpose is a factor variable with 14 levels, it "clogs" the model with dummy variables. Conceptually, it also makes sense that it would be highly collinear - somebody obtaining a loan for "debt consolidation", for instance, likely has indicators of high debt in the other predictors. Thus, we will remove that variable and refit the model.
 
-```{r}
+```{r, warning=FALSE}
 loans_data = subset(loans_data, select = -c(loan_purpose))
 add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)[vif(add_model_vif) > 5]
@@ -263,7 +263,7 @@ vif(add_model_vif)[vif(add_model_vif) > 5]
 
 It appears that `loan_amount` has by far the largest collinearity, so we will remove that from the dataset as well.
 
-```{r}
+```{r, warning=FALSE}
 loans_data = subset(loans_data, select = -c(loan_amount))
 add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)[vif(add_model_vif) > 5]
@@ -271,7 +271,7 @@ vif(add_model_vif)[vif(add_model_vif) > 5]
 
 Now, all predictors have a VIF value below 10, but still above our target benchmark of 5. We will continue to remove the highest VIF from our predictors.
 
-```{r}
+```{r, warning=FALSE}
 loans_data = subset(loans_data, select = -c(num_satisfactory_accounts))
 add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)[vif(add_model_vif) > 5]
@@ -279,7 +279,7 @@ vif(add_model_vif)[vif(add_model_vif) > 5]
 
 While the remaining VIF values are close to our benchmark of 5, we will choose to remove `total_credit_lines` for consistency sake. Removing this variable eliminates all remaining collinearity issues.
 
-```{r}
+```{r, warning=FALSE}
 loans_data = subset(loans_data, select = -c(total_credit_lines))
 add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)
@@ -505,6 +505,7 @@ diagnostic_graph(models$log_interactive)
 # Discussion
 
 Two sets of models were developed `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors which did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
+
 ## Model Assumptions
 
 `Table 2, Models Diagnostics` shows **extremely low** `p-values` so we can easily say that `Normality` and `Constant Variance` assumptions. Perhaps we missed some transformations of the `predictors` that could help getting better `p-values`. It is likely that linearity `Assumtion` is also violated.
