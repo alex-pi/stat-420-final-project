@@ -319,52 +319,39 @@ We noticed a significant improvement in the `QQ Plot`, yet we still see an obvio
 ## Model Selection (Joshua)
 
 ```{r}
-additive = lm(interest_rate ~ ., data = loans_train)
-interactive_two_way = lm(interest_rate ~ . ^2, data = loans_train)
-#interactive_three_way = lm(interest_rate ~ . ^3, data = loans_train)
+additive = lm(interest_rate ~ . - num_satisfactory_accounts - num_accounts_30d_past_due - installment - balance
+- num_open_cc_accounts - num_cc_carrying_balance - num_historical_failed_to_pay - paid_total
+- paid_principal - paid_interest - paid_late_fees - loan_purpose - num_total_cc_accounts, data = loans_train)
 
-n = length(resid(interactive_two_way))
-selected_aic = step(interactive_two_way, direction = "backward", trace = FALSE)
-selected_bic = step(interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+n = length(resid(additive))
+selected_aic = step(additive, direction = "backward", trace = FALSE)
+selected_bic = step(additive, direction = "backward", k = log(n), trace = FALSE)
 ```
 
 
 ```{r}
-log_additive = lm(log(interest_rate) ~ ., data = loans_train)
-log_interactive_two_way = lm(log(interest_rate) ~ . ^2, data = loans_train)
-#log_interactive_three_way = lm(log(interest_rate) ~ . ^3, data = loans_train)
+log_additive = lm(log(interest_rate) ~ .- num_satisfactory_accounts - num_accounts_30d_past_due - installment - balance
+- num_open_cc_accounts - num_cc_carrying_balance - num_historical_failed_to_pay - paid_total
+- paid_principal - paid_interest - paid_late_fees - loan_purpose - num_total_cc_accounts, data = loans_train)
 
-n = length(resid(log_interactive_two_way))
-log_selected_aic = step(log_interactive_two_way, direction = "backward", trace = FALSE)
-log_selected_bic = step(log_interactive_two_way, direction = "backward", k = log(n), trace = FALSE)
+n = length(resid(log_additive))
+log_selected_aic = step(log_additive, direction = "backward", trace = FALSE)
+log_selected_bic = step(log_additive, direction = "backward", k = log(n), trace = FALSE)
 ```
 
-## LOOCV-RMSE Analysis (Joshua)
-
+##Generate interactive model from best selected
 ```{r}
-calc_loocv_rmse = function(model) {
-  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
-}
+interactive = lm(interest_rate ~ (verified_income + debt_to_income + 
+    delinq_2y + inquiries_last_12m + total_credit_lines + total_credit_limit + 
+    total_credit_utilized + accounts_opened_24m + num_active_debit_accounts + 
+    total_debit_limit + num_mort_accounts + account_never_delinq_percent + 
+    term) ^ 2, data = loans_train)
 
-min(calc_loocv_rmse(additive), 
-    calc_loocv_rmse(interactive_two_way),
-    calc_loocv_rmse(interactive_three_way),
-    calc_loocv_rmse(selected_aic),
-    calc_loocv_rmse(selected_bic))
-
-min(calc_loocv_rmse(log_additive), 
-    calc_loocv_rmse(log_interactive_two_way),
-    calc_loocv_rmse(log_interactive_three_way),
-    calc_loocv_rmse(log_selected_aic),
-    calc_loocv_rmse(log_selected_bic))
-
-#selected_bic has the lowest loocv_rmse
-summary(selected_bic)
-summary(log_selected_bic)
-
-#selected bic using log has a higher r^2
-summary(selected_bic)$r.squared
-summary(log_selected_bic)$r.squared
+log_interactive = lm(log(interest_rate) ~ (verified_income + debt_to_income + 
+    delinq_2y + inquiries_last_12m + total_credit_lines + total_credit_limit + 
+    total_credit_utilized + accounts_opened_24m + num_active_debit_accounts + 
+    total_debit_limit + num_mort_accounts + account_never_delinq_percent + 
+    public_record_bankrupt + term) ^ 2, data = loans_train)
 ```
 
 
@@ -378,6 +365,27 @@ Constant Variance
 Linearity
 
 # Results
+
+## Model Metrics
+```{r}
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
+adjrsquared = c(summary(additive)$adj.r.squared, summary(selected_aic)$adj.r.squared, summary(selected_bic)$adj.r.squared,
+                summary(interactive)$adj.r.squared, summary(log_additive)$adj.r.squared, summary(log_selected_aic)$adj.r.squared,
+                summary(log_selected_bic)$adj.r.squared, summary(log_interactive)$adj.r.squared)
+loocv_rmse = c(calc_loocv_rmse(additive), calc_loocv_rmse(selected_aic), calc_loocv_rmse(selected_bic), calc_loocv_rmse(interactive),
+               calc_loocv_rmse(log_additive), calc_loocv_rmse(log_selected_aic), calc_loocv_rmse(log_selected_bic), calc_loocv_rmse(log_interactive))
+
+model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
+                  "Adjusted R^2" = adjrsquared,
+                  "LOOCV-RMSE" = loocv_rmse,
+                  check.names=FALSE)
+
+gen_kable(model_metrics,
+          caption = "Model Metrics")
+```
 
 
 
