@@ -1,6 +1,7 @@
 ---
-title: 'Lending Club Interest Rate Study in R.'
+title: 'Lending Club Interest Rate Study in R'
 date: '8/8/2021'
+authors: 'Joshua Ceaser (jceaser2), Bryan Holcomb (bryanph2), Alejandro Pimentel (ap41)'
 output:
   html_document: 
     theme: readable
@@ -111,7 +112,7 @@ Our goal in this study is to look for a model using a set of the other predictor
 
 # Methods
 
-## Utility functions.
+## Utility functions
 
 Here we define functions that will be of use during the study.
 
@@ -181,7 +182,7 @@ loans_data <- subset(loans_data,
                        issue_month
                      ))
 
-## Remove 24 entrie with NA dept_to_income
+## Remove 24 entries with NA dept_to_income
 loans_data <- na.omit(loans_data)
 
 ## Remove some categoricals
@@ -223,8 +224,6 @@ Now that we have processed and cleaned our data, we will further analyze for col
 ```{r}
 ##Numerical dataframe for correlations
 loans_num = subset(loans_data, select = -c(homeownership, verified_income, loan_purpose, application_type, term))
-
-round(cor(loans_num), 3)
 
 cor(loans_num) > 0.8
 ```
@@ -285,8 +284,7 @@ add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)
 ```
 
-Divide Training and Testing Data.
-
+Below, we will divide our data into a training set and a testing set. We will use $n = 7000$ to train our models.
 ```{r}
 idxs <- 1:nrow(loans_data)
 trn_idxs <- sample(idxs, 7000) 
@@ -554,9 +552,9 @@ summary(log_int_refit)$adj.r.squared
 
 From the above, we can see that the refit without influential observations increases the adjusted $R^2$ by approximately 0.07 in all additive and log-additive models, and by approximately 0.06 in the interaction models.
 
-## Model diagnostics for assumptions
+## Model Diagnostics
 
-Below we use our function to diagnose the models assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
+Below we use our function to diagnose the model assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
 
 ```{r}
 
