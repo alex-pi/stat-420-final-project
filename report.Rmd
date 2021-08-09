@@ -216,7 +216,7 @@ loans_data$application_type <- as.factor(loans_data$application_type)
 loans_data$term <- as.factor(loans_data$term)
 ```
 
-## Collinearity Analysis (Bryan)
+## Collinearity Analysis
 
 Now that we have processed and cleaned our data, we will further analyze for collinear variables.
 
@@ -233,12 +233,12 @@ The first thing we notice is that we get `NA` values for the correlations on `cu
 
 Additionally, we notice that the following pairs are highly collinear (correlation > 0.8):
 
-`open_credit_lines` and `num_satisfactory_accounts`
-`open_credit_lines` and `num_open_cc_accounts`
-`num_open_cc_accounts` and `num_satisfactory_accounts`
-`num_active_debit_accounts` and `num_cc_carrying_balance`
-`num_total_cc_accounts` and `num_open_cc_accounts`
-`num_historical_failed_to_pay` and `tax_liens`
+- `open_credit_lines` and `num_satisfactory_accounts`
+- `open_credit_lines` and `num_open_cc_accounts`
+- `num_open_cc_accounts` and `num_satisfactory_accounts`
+- `num_active_debit_accounts` and `num_cc_carrying_balance`
+- `num_total_cc_accounts` and `num_open_cc_accounts`
+- `num_historical_failed_to_pay` and `tax_liens`
 
 From these pairs, we will remove `num_open_cc_accounts` and `open_credit_lines`, as each correlates highly with multiple variables. Next we will fit a basic additive model with the remaining predictors for the purpose of analyzing the VIF.
 
@@ -288,23 +288,15 @@ vif(add_model_vif)
 Divide Training and Testing Data.
 
 ```{r}
-# Remove before submitting !!
-set.seed(420)
-
 idxs <- 1:nrow(loans_data)
-trn_idxs <- sample(idxs, 7000) # CHANGE before submitting
-
-##### Remove before submitting
-#sample_idxs <- sample(idxs, 1500)
-#loans_data <- loans_data[sample_idxs, ]
-#####
+trn_idxs <- sample(idxs, 7000) 
 
 # Train and Test sets
 loans_train <- loans_data[trn_idxs, ]
 loans_test <- loans_data[-trn_idxs, ]
 ```
 
-## Transformations (Alejandro)
+## Transformations
 
 A first check into the linear model assumptions suggests we might need to try some transformations.
 
@@ -377,7 +369,7 @@ plot(interest_rate ~ total_credit_limit,
 
 From the plots above, there is no obvious correlation from which we can decide a transformation to apply. In fact, we tried a few of them without noticing much improvement in the `QQ plot` and `Fitted vs Residuals`.
 
-## Model Selection (Joshua)
+## Model Selection
 
 ```{r}
 generate_models = function(training_data, subset_model = TRUE) {
@@ -405,9 +397,12 @@ generate_models = function(training_data, subset_model = TRUE) {
                  "log_additive" = log_additive, "log_selected_aic" = log_selected_aic, "log_selected_bic" = log_selected_bic, "log_interactive" = log_interactive)
   return (newList)
 }
+
+models = generate_models(loans_train)
+
 ```
 
-## Unusual Observations (Bryan)
+## Unusual Observations
 
 ### Leverage
 
@@ -416,21 +411,21 @@ Below, we will investigate our fit models for high-leverage data points, using t
 ```{r}
 #Change to use fit models
 
-sum(hatvalues(bryan_models$additive) > 2 * mean(hatvalues(bryan_models$additive)))
+sum(hatvalues(models$additive) > 2 * mean(hatvalues(models$additive)))
 
-sum(hatvalues(bryan_models$selected_aic) > 2 * mean(hatvalues(bryan_models$selected_aic)))
+sum(hatvalues(models$selected_aic) > 2 * mean(hatvalues(models$selected_aic)))
 
-sum(hatvalues(bryan_models$selected_bic) > 2 * mean(hatvalues(bryan_models$selected_bic)))
+sum(hatvalues(models$selected_bic) > 2 * mean(hatvalues(models$selected_bic)))
 
-sum(hatvalues(bryan_models$log_additive) > 2 * mean(hatvalues(bryan_models$log_additive)))
+sum(hatvalues(models$log_additive) > 2 * mean(hatvalues(models$log_additive)))
 
-sum(hatvalues(bryan_models$log_selected_aic) > 2 * mean(hatvalues(bryan_models$log_selected_aic)))
+sum(hatvalues(models$log_selected_aic) > 2 * mean(hatvalues(models$log_selected_aic)))
 
-sum(hatvalues(bryan_models$log_selected_bic) > 2 * mean(hatvalues(bryan_models$log_selected_bic)))
+sum(hatvalues(models$log_selected_bic) > 2 * mean(hatvalues(models$log_selected_bic)))
 
-sum(hatvalues(bryan_models$interactive) > 2 * mean(hatvalues(bryan_models$interactive)))
+sum(hatvalues(models$interactive) > 2 * mean(hatvalues(models$interactive)))
 
-sum(hatvalues(bryan_models$log_interactive) > 2 * mean(hatvalues(bryan_models$log_interactive)))
+sum(hatvalues(models$log_interactive) > 2 * mean(hatvalues(models$log_interactive)))
 
 ```
 
@@ -441,46 +436,46 @@ We can see that the base additive models (`additive` and `log_additive`) have th
 We will run a similar procedure to investigate for outliers within each model. We will define an "outlier" as an observation that yields a standardized residual with a magnitude greater than 2. 
 
 ```{r}
-sum(abs(rstandard(bryan_models$additive)) > 2)
+sum(abs(rstandard(models$additive)) > 2)
 
-sum(abs(rstandard(bryan_models$selected_aic)) > 2)
+sum(abs(rstandard(models$selected_aic)) > 2)
 
-sum(abs(rstandard(bryan_models$selected_bic)) > 2)
+sum(abs(rstandard(models$selected_bic)) > 2)
 
-sum(abs(rstandard(bryan_models$log_additive)) > 2)
+sum(abs(rstandard(models$log_additive)) > 2)
 
-sum(abs(rstandard(bryan_models$log_selected_aic)) > 2)
+sum(abs(rstandard(models$log_selected_aic)) > 2)
 
-sum(abs(rstandard(bryan_models$log_selected_bic)) > 2)
+sum(abs(rstandard(models$log_selected_bic)) > 2)
 
-sum(abs(rstandard(bryan_models$interactive)) > 2)
+sum(abs(rstandard(models$interactive)) > 2)
 
-sum(abs(rstandard(bryan_models$log_interactive)) > 2)
+sum(abs(rstandard(models$log_interactive)) > 2)
 
 ```
 
 Our log additive model has the fewest outliers, with 198. Close behind it is the AIC-selected log-transform model with 199. Our interaction model once again has the most outliers, with 273.
 
-##Influence
+## Influence
 
 Using the above results, it is likely that we have some influential observations. To determine this, we will calculate Cook's Distance in search of observations with a Cook's Distance greater than 4 / $n$, where $n$ is the number of observations.
 
 ```{r}
-sum(cooks.distance(bryan_models$additive) > 4 / length(resid(bryan_models$additive)))
+sum(cooks.distance(models$additive) > 4 / length(resid(models$additive)))
 
-sum(cooks.distance(bryan_models$selected_aic) > 4 / length(resid(bryan_models$selected_aic)))
+sum(cooks.distance(models$selected_aic) > 4 / length(resid(models$selected_aic)))
 
-sum(cooks.distance(bryan_models$selected_bic) > 4 / length(resid(bryan_models$selected_bic)))
+sum(cooks.distance(models$selected_bic) > 4 / length(resid(models$selected_bic)))
 
-sum(cooks.distance(bryan_models$log_additive) > 4 / length(resid(bryan_models$log_additive)))
+sum(cooks.distance(models$log_additive) > 4 / length(resid(models$log_additive)))
 
-sum(cooks.distance(bryan_models$log_selected_aic) > 4 / length(resid(bryan_models$log_selected_aic)))
+sum(cooks.distance(models$log_selected_aic) > 4 / length(resid(models$log_selected_aic)))
 
-sum(cooks.distance(bryan_models$log_selected_bic) > 4 / length(resid(bryan_models$log_selected_bic)))
+sum(cooks.distance(models$log_selected_bic) > 4 / length(resid(models$log_selected_bic)))
 
-sum(cooks.distance(bryan_models$interactive) > 4 / length(resid(bryan_models$interactive)))
+sum(cooks.distance(models$interactive) > 4 / length(resid(models$interactive)))
 
-sum(cooks.distance(bryan_models$log_interactive) > 4 / length(resid(bryan_models$log_interactive)))
+sum(cooks.distance(models$log_interactive) > 4 / length(resid(models$log_interactive)))
 
 ```
 
@@ -489,15 +484,15 @@ Once again, we find that the `log_additive` model contains the fewest influentia
 Now, we will refit and compare coefficients from each model.
 
 ```{r}
-add_refit = lm((bryan_models$additive)$call$formula, 
+add_refit = lm((models$additive)$call$formula, 
                data = loans_train,
-               subset = cooks.distance(bryan_models$additive) <= 4 / length(resid(bryan_models$additive)))
+               subset = cooks.distance(models$additive) <= 4 / length(resid(models$additive)))
 
-summary(bryan_models$additive)$adj.r.squared
+summary(models$additive)$adj.r.squared
 summary(add_refit)$adj.r.squared
 
 knitr::kable(data.frame("Predictor" = names(coef(add_refit)),
-           "full data" = unname(coef(bryan_models$additive)),
+           "full data" = unname(coef(models$additive)),
            "refit" = unname(coef(add_refit))), "pipe", align = "ccc")
 ```
 
@@ -508,7 +503,7 @@ From the above table, one can see that the largest changes in coefficients were 
 ```
 
 
-## Model diagnostics for assumptions (Alejandro)
+## Model diagnostics for assumptions
 
 Below we use our function to diagnose the models assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
 
@@ -517,20 +512,18 @@ Below we use our function to diagnose the models assumptions. We used the `diagn
 sample_idxs <- sample(idxs, 5000)
 loans_data_small <- loans_data[sample_idxs, ]
 
-## Convert Joshua's code to functions so I can reuse them here with a
-## smaller data set.
-models = generate_models(loans_data_small)
+models_diags = generate_models(loans_data_small)
 
-additive_diag = diagnostics(models$additive)
-selected_aic_diag = diagnostics(models$selected_aic)
-selected_bic_diag = diagnostics(models$selected_bic)
+additive_diag = diagnostics(models_diags$additive)
+selected_aic_diag = diagnostics(models_diags$selected_aic)
+selected_bic_diag = diagnostics(models_diags$selected_bic)
 
-log_additive_diag = diagnostics(models$log_additive)
-log_selected_aic_diag = diagnostics(models$log_selected_aic)
-log_selected_bic_diag = diagnostics(models$log_selected_bic)
+log_additive_diag = diagnostics(models_diags$log_additive)
+log_selected_aic_diag = diagnostics(models_diags$log_selected_aic)
+log_selected_bic_diag = diagnostics(models_diags$log_selected_bic)
 
-interactive_diag = diagnostics(models$interactive)
-log_interactive_diag = diagnostics(models$log_interactive)
+interactive_diag = diagnostics(models_diags$interactive)
+log_interactive_diag = diagnostics(models_diags$log_interactive)
 
 ```
 
