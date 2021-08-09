@@ -226,6 +226,8 @@ loans_num = subset(loans_data, select = -c(homeownership, verified_income, loan_
 
 ```
 
+The full correlation matrix can be found in Appendix A.
+
 The first thing we observe is that we get `NA` values for the correlations on `current_accounts_delinq` and `num_accounts_30d_past_due`. For simplicity's sake, we will remove these predictors.
 
 Additionally, we notice the following pairs are highly collinear (correlation > 0.8):
@@ -495,7 +497,7 @@ gen_kable(data.frame("Predictor" = names(coef(add_refit)),
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
 
-To conserve space, we will only analyze the change in adjusted $R^2$ here for the remaining models that will be refit. The comparison of parameters for each model can be found in the appendix.
+To conserve space, we will only analyze the change in adjusted $R^2$ here for the remaining models that will be refit. The comparison of parameters for each model can be found in Appendix B.
 
 ```{r}
 aic_refit = lm((models$selected_aic)$call$formula, 
@@ -791,3 +793,9 @@ gen_kable(data.frame("Predictor" = names(coef(log_int_refit)),
            "Refit" = unname(coef(log_int_refit))), 
           caption = "Log Interactive Model Parameters Before/After Reving Influential Points")
 ```
+
+## Appendix C - Authors
+
+Joshua Ceaser (jceaser2)
+Bryan Holcomb (bryanph2)
+Alejandro Pimentel (ap41)
