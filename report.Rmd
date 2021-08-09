@@ -91,11 +91,11 @@ Number of observations: **`r dim(loans_full_schema)[1]`**
 
 ## Statement of interest
 
-We are interested in this dataset because it is a good example of the kind of data that will be analyzed in the private sector. Many industries consider income and credit history in making business decisions. Not only will this provide a quality learning opportunity involving real-world data, but will also provide a tangible example of statistical modeling experience that we can use as we continue our data science careers.
+We are interested in this dataset because it is a good example of data that is analyzed in the private sector. Many industries consider income and credit history in making business decisions. Not only will this provide a quality learning opportunity involving real-world data, but will also provide a tangible example of statistical modeling experience that we can use as we continue our data science careers.
 
 ## Goal of the Model
 
-This study aims to to find a `model` that can predict the  `interest_rate` given the available variables excluding `grade` and `subgrade`. 
+This study aims to to find a `model` that can predict the `interest_rate` given the available variables excluding `grade` and `subgrade`. 
 
 By fitting a simple model using the `grade` we can see a high $R^2$.
 
@@ -158,7 +158,7 @@ diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
 
 ## Variables Selection and Data Preparation
 
-For simplicity we start removing a few columns that have many `NA` values. We will also remove some irrelevant variables like dates and descriptions. Additionally, we will remove `grade`, `subgrade`, and the results of the interest rate - `installment`, `balance`, and the details on payments.
+For simplicity we start removing a few columns which have many `NA` values. We will also remove some irrelevant variables like dates and descriptions. Additionally, we will remove `grade`, `subgrade`, and the results of the interest rate - `installment`, `balance`, and the details on payments.
 
 ```{r}
 ## Remove columns with many NAs
@@ -207,7 +207,7 @@ loans_data <- subset(loans_data,
                      ))
 ```
 
-We will also convert some character-structured data to factors. Additionally, although `term` appears to be numerical, it appears there are only two options for loan terms - a 3-year loan (36 months) and a 5-year loan (60 months). Thus, we will structure this as a factor.
+We will also convert some character-structured data to factors. Although `term` appears to be numerical, it appears there are only two options for loan terms - a 3-year loan (36 months) and a 5-year loan (60 months). Thus, we will structure this as a factor.
 
 ```{r}
 loans_data$homeownership <- as.factor(loans_data$homeownership)
@@ -229,9 +229,9 @@ round(cor(loans_num), 3)
 cor(loans_num) > 0.8
 ```
 
-The first thing we notice is that we get `NA` values for the correlations on `current_accounts_delinq` and `num_accounts_30d_past_due`. For simplicity's sake, we will remove these predictors.
+The first thing we observe is that we get `NA` values for the correlations on `current_accounts_delinq` and `num_accounts_30d_past_due`. For simplicity's sake, we will remove these predictors.
 
-Additionally, we notice that the following pairs are highly collinear (correlation > 0.8):
+Additionally, we notice the following pairs are highly collinear (correlation > 0.8):
 
 - `open_credit_lines` and `num_satisfactory_accounts`
 - `open_credit_lines` and `num_open_cc_accounts`
@@ -253,7 +253,7 @@ add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)[vif(add_model_vif) > 5]
 ```
 
-One of the first things we notice in this VIF is the abundance of `loan_purpose`. As loan purpose is a factor variable with 14 levels, it "clogs" the model with dummy variables. Conceptually, it also makes sense that it would be highly collinear - somebody obtaining a loan for "debt consolidation", for instance, likely has indicators of high debt in the other predictors. Thus, we will remove that variable and refit the model.
+One of the first things we notice in this VIF is the abundance of `loan_purpose`. As loan purpose is a factor variable with 14 levels, it "clogs" the model with dummy variables. Conceptually, it also makes sense that it would be highly collinear. Somebody obtaining a loan for "debt consolidation", for instance, likely has indicators of high debt in the other predictors. Thus, we will remove that variable and refit the model.
 
 ```{r, warning=FALSE}
 loans_data = subset(loans_data, select = -c(loan_purpose))
@@ -429,7 +429,7 @@ sum(hatvalues(models$log_interactive) > 2 * mean(hatvalues(models$log_interactiv
 
 ```
 
-We can see that the base additive models (`additive` and `log_additive`) have the fewest high-leverage observations with 278. The interaction model has the most high-leverage observations with 527.
+We observed the base additive models (`additive` and `log_additive`) have the fewest high-leverage observations with 278. The interaction model has the most high-leverage observations with 527.
 
 ### Outliers
 
@@ -590,7 +590,7 @@ diagnostic_graph(models$log_interactive)
 
 ## Prediction
 
-```{r}
+```{r, warning = FALSE}
 rmse = function(model, newdata, log = FALSE) {
   
   if(log) {
@@ -604,22 +604,22 @@ rmse = function(model, newdata, log = FALSE) {
 }
 
 rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Log", "Log AIC", "Log BIC", "Interaction", "Log Interaction"),
-                     "Train RMSE" = c(rmse(bryan_models$additive, loans_train),
-                                      rmse(bryan_models$selected_aic, loans_train),
-                                      rmse(bryan_models$selected_bic, loans_train),
-                                      rmse(bryan_models$log_additive, loans_train, log = TRUE),
-                                      rmse(bryan_models$log_selected_aic, loans_train, log = TRUE),
-                                      rmse(bryan_models$log_selected_bic, loans_train, log = TRUE),
-                                      rmse(bryan_models$interactive, loans_train),
-                                      rmse(bryan_models$log_interactive, loans_train, log = TRUE)),
-                     "Test RMSE" = c(rmse(bryan_models$additive, loans_test),
-                                      rmse(bryan_models$selected_aic, loans_test),
-                                      rmse(bryan_models$selected_bic, loans_test),
-                                      rmse(bryan_models$log_additive, loans_test, log = TRUE),
-                                      rmse(bryan_models$log_selected_aic, loans_test, log = TRUE),
-                                      rmse(bryan_models$log_selected_bic, loans_test, log = TRUE),
-                                      rmse(bryan_models$interactive, loans_test),
-                                      rmse(bryan_models$log_interactive, loans_test, log = TRUE)))
+                     "Train RMSE" = c(rmse(models$additive, loans_train),
+                                      rmse(models$selected_aic, loans_train),
+                                      rmse(models$selected_bic, loans_train),
+                                      rmse(models$log_additive, loans_train, log = TRUE),
+                                      rmse(models$log_selected_aic, loans_train, log = TRUE),
+                                      rmse(models$log_selected_bic, loans_train, log = TRUE),
+                                      rmse(models$interactive, loans_train),
+                                      rmse(models$log_interactive, loans_train, log = TRUE)),
+                     "Test RMSE" = c(rmse(models$additive, loans_test),
+                                      rmse(models$selected_aic, loans_test),
+                                      rmse(models$selected_bic, loans_test),
+                                      rmse(models$log_additive, loans_test, log = TRUE),
+                                      rmse(models$log_selected_aic, loans_test, log = TRUE),
+                                      rmse(models$log_selected_bic, loans_test, log = TRUE),
+                                      rmse(models$interactive, loans_test),
+                                      rmse(models$log_interactive, loans_test, log = TRUE)))
 
 gen_kable(rmse_df,
           caption = "RMSE Values",
@@ -630,7 +630,8 @@ gen_kable(rmse_df,
 
 # Discussion
 
-Two sets of models were developed `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors which did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
+## Models
+Two sets of models were developed with `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors that did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
 
 ## Model Assumptions
 
@@ -652,5 +653,5 @@ Unfortunately, we can hardly trust these results given the evidence of Assumptio
 
 Overall, the additive model family was slightly better at predicting the test dataset than the logarithmic, and both families slightly outperformed the interaction models.
 
-However, these test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is more than one standard deviation away from the true value.
+However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
 
