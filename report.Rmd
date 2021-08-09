@@ -15,7 +15,7 @@ editor_options:
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 options(scipen = 1, digits = 4, width = 80, fig.align = "center",
-        fig.height = 5, fig.width = 7)
+        fig.height = 5, fig.width = 8)
 ```
 
 *Utility functions defined here, click `Code` to see*
@@ -26,10 +26,10 @@ library(kableExtra)
 library(dplyr)
 library(MASS)
 
-format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
+format_numerics = function(data, digits = 2, notation_threshold = 0.00001) {
   # make sure is a data.frame, then format
   if(!is.data.frame(data)){
-    data <- as.data.frame(data)
+    data = as.data.frame(data)
   }  
   data %>% 
     mutate_if(
@@ -44,13 +44,13 @@ format_numerics <- function(data, digits = 2, notation_threshold = 0.00001) {
     )
 }
 
-gen_kable <- function(table_data, add_row_names = TRUE, caption = "", foot_text = "", col_names = c(), row_names = c()) {
-  f_data <- format_numerics(table_data) 
+gen_kable = function(table_data, add_row_names = TRUE, caption = "", foot_text = "", col_names = c(), row_names = c()) {
+  f_data = format_numerics(table_data) 
   if(length(col_names) != 0){
-    colnames(f_data) <- col_names
+    colnames(f_data) = col_names
   }
   if(length(row_names) != 0){
-    rownames(f_data) <- row_names
+    rownames(f_data) = row_names
   }  
   f_data %>%
   kable(., format = "html", row.names = add_row_names,
@@ -123,15 +123,15 @@ The following function will help us to report diagnostics such as:
 ```{r, message = FALSE, warning = FALSE}
 library(lmtest)
 
-diagnostics <- function(model, alpha = 0.05) {
+diagnostics = function(model, alpha = 0.05) {
 
-  diags <- list()
-  p_val_st <- shapiro.test(model$residuals)$p.value
-  p_val_bp <- bptest(model)$p.value
-  diags$shapiro <- list(
+  diags = list()
+  p_val_st = shapiro.test(model$residuals)$p.value
+  p_val_bp = bptest(model)$p.value
+  diags$shapiro = list(
     "p_val" = p_val_st,
     "decision" = ifelse(p_val_st < alpha, "Reject", "Fail to Reject"))
-  diags$bptest <- list(
+  diags$bptest = list(
     "p_val" = p_val_bp,
     "decision" = ifelse(p_val_bp < alpha, "Reject", "Fail to Reject"))
   
@@ -142,7 +142,7 @@ diagnostics <- function(model, alpha = 0.05) {
 The function below will show the QQ and Fitted vs Residuals plots for a given model.
 
 ```{r}
-diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
+diagnostic_graph = function(model, pcol = "grey", lcol = "dodgerblue") {
   par(mfrow = c(1, 2), bg="ghostwhite")
   plot(model$fitted.values, model$residuals,  
        col = pcol, pch = 20,
@@ -162,7 +162,7 @@ For simplicity we start removing a few columns which have many `NA` values. We w
 
 ```{r}
 ## Remove columns with many NAs
-loans_data <- subset(loans_full_schema, 
+loans_data = subset(loans_full_schema, 
                      select = -c(num_accounts_120d_past_due,
                                  months_since_last_credit_inquiry,
                                  months_since_90d_late,
@@ -174,7 +174,7 @@ loans_data <- subset(loans_full_schema,
                      ))
 
 ## Remove unimportant
-loans_data <- subset(loans_data, 
+loans_data = subset(loans_data, 
                      select = -c(
                        state,
                        emp_title,
@@ -182,10 +182,10 @@ loans_data <- subset(loans_data,
                      ))
 
 ## Remove 24 entries with NA debt_to_income
-loans_data <- na.omit(loans_data)
+loans_data = na.omit(loans_data)
 
 ## Remove some categoricals
-loans_data <- subset(loans_data, 
+loans_data = subset(loans_data, 
                      select = -c(
                        loan_status,
                        initial_listing_status,
@@ -196,7 +196,7 @@ loans_data <- subset(loans_data,
 
 ## Conceptually we should remove the following variables,
 ## as they are a result of the interest rate.
-loans_data <- subset(loans_data, 
+loans_data = subset(loans_data, 
                      select = -c(
                       paid_total,
                       paid_principal,
@@ -210,10 +210,10 @@ loans_data <- subset(loans_data,
 We will also convert some character-structured data to factors. Although `term` appears to be numerical, it appears there are only two options for loan terms - a 3-year loan (36 months) and a 5-year loan (60 months). Thus, we will structure this as a factor.
 
 ```{r}
-loans_data$homeownership <- as.factor(loans_data$homeownership)
-loans_data$verified_income <- as.factor(loans_data$verified_income)
-loans_data$application_type <- as.factor(loans_data$application_type)
-loans_data$term <- as.factor(loans_data$term)
+loans_data$homeownership = as.factor(loans_data$homeownership)
+loans_data$verified_income = as.factor(loans_data$verified_income)
+loans_data$application_type = as.factor(loans_data$application_type)
+loans_data$term = as.factor(loans_data$term)
 ```
 
 ## Collinearity Analysis
@@ -285,20 +285,20 @@ vif(add_model_vif)
 
 Below, we will divide our data into a training set and a testing set. We will use $n = 7000$ to train our models.
 ```{r}
-idxs <- 1:nrow(loans_data)
-trn_idxs <- sample(idxs, 7000) 
+idxs = 1:nrow(loans_data)
+trn_idxs = sample(idxs, 7000) 
 
 # Train and Test sets
-loans_train <- loans_data[trn_idxs, ]
-loans_test <- loans_data[-trn_idxs, ]
+loans_train = loans_data[trn_idxs, ]
+loans_test = loans_data[-trn_idxs, ]
 ```
 
 ## Transformations
 
 A first check into the linear model assumptions suggests we might need to try some transformations.
 
-```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
-additive_mod <- lm(interest_rate ~ ., data = loans_train)
+```{r, fig.height = 5, fig.width = 8, fig.align = "center"}
+additive_mod = lm(interest_rate ~ ., data = loans_train)
 
 diagnostic_graph(additive_mod)
 ```
@@ -316,7 +316,7 @@ g_\lambda(y) = \left\{
    \right.
 $$
 
-```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 8, fig.align = "center"}
 par(mfrow=c(1, 1), bg="ghostwhite")
 boxcox(additive_mod, plotit = TRUE, lambda = seq(-0.8, 0.8, by = 0.1))
 ```
@@ -324,7 +324,7 @@ boxcox(additive_mod, plotit = TRUE, lambda = seq(-0.8, 0.8, by = 0.1))
 Since $\lambda \approx 0$, we try to apply a log-transformation of the response.
 
 ```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
-additive_mod <- lm(log(interest_rate) ~ ., data = loans_train)
+additive_mod = lm(log(interest_rate) ~ ., data = loans_train)
 
 diagnostic_graph(additive_mod)
 ```
@@ -335,7 +335,7 @@ We noticed a significant improvement in the QQ Plot, yet we still see an obvious
 
 The below plots show the relation between four of the predictors and the response.
 
-```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 8, fig.align = "center"}
 par(mfrow=c(2, 2), bg="ghostwhite")
 
 plot(interest_rate ~ accounts_opened_24m, 
@@ -556,12 +556,12 @@ From the above, we can see that the refit without influential observations incre
 
 ## Model Diagnostics
 
-Below we use our function to diagnose the model assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
+Below we use our function to diagnose the model assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$.
 
 ```{r}
 
-sample_idxs <- sample(idxs, 5000)
-loans_data_small <- loans_data[sample_idxs, ]
+sample_idxs = sample(idxs, 5000)
+loans_data_small = loans_data[sample_idxs, ]
 
 models_diags = generate_models(loans_data_small)
 
@@ -606,7 +606,7 @@ loocv_rmse = c(calc_loocv_rmse(models$additive),
                 calc_loocv_rmse(models$log_selected_bic),
                 calc_loocv_rmse(models$log_interactive))
 
-model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", 
+model_metrics = data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", 
                                      "Interactive", "Additive(log)", 
                                      "Backwards AIC(log)", "Backwards BIC(log)", 
                                      "Interactive(log)"),
@@ -665,14 +665,14 @@ Below we show the QQ and Fitted vs Residuals plots for 2 of those models. We tak
 
 **Plot 2.1 Additive model without response transformation**
 
-```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 8, fig.align = "center"}
 
 diagnostic_graph(models$additive)
 ```
 
 **Plot 2.2 Interactions model with $log$ transformation of the response**
 
-```{r, fig.height = 5, fig.width = 7, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 8, fig.align = "center"}
 
 diagnostic_graph(models$log_interactive)
 ```
@@ -700,6 +700,7 @@ rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Interaction"
                                       rmse(models$log_additive, loans_train, log = TRUE),
                                       rmse(models$log_selected_aic, loans_train, log = TRUE),
                                       rmse(models$log_selected_bic, loans_train, log = TRUE),
+                                      rmse(models$interactive, loans_train),
                                       rmse(models$log_interactive, loans_train, log = TRUE)),
                      "Test RMSE" = c(rmse(models$additive, loans_test),
                                       rmse(models$selected_aic, loans_test),
@@ -708,6 +709,7 @@ rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Interaction"
                                       rmse(models$log_additive, loans_test, log = TRUE),
                                       rmse(models$log_selected_aic, loans_test, log = TRUE),
                                       rmse(models$log_selected_bic, loans_test, log = TRUE),
+                                      rmse(models$interactive, loans_test),
                                       rmse(models$log_interactive, loans_test, log = TRUE)))
 
 gen_kable(rmse_df,
@@ -718,6 +720,9 @@ gen_kable(rmse_df,
 
 
 # Discussion
+
+## Models
+Two sets of models were developed with `interest_rate` as the response, however one set of models used the log transformation of the response. We chose to build an additive model, which used all predictors that did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $R^2$ and the lowest LOOCV `RMSE`.
 
 ## Model Assumptions
 
@@ -737,7 +742,7 @@ However, because the linear model assumptions have been violated, we cannot reli
 
 ## Prediction Performance
 
-When evaluating the models in `Table 1` we observed both interactive models had the highest adjusted $r^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
+When evaluating the models in `Table 1` we observed both interactive models had the highest adjusted $R^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
 
 However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
 
@@ -789,3 +794,8 @@ gen_kable(data.frame("Predictor" = names(coef(log_int_refit)),
           caption = "Log Interactive Model Parameters Before/After Reving Influential Points")
 ```
 
+## Conclusion
+
+We observed that the `additive` family of the models perform better at `Prediction` that the $log$ and `interaction` models. The `interaction` models while large were much better at explaining the `interest_rate` since we observed higher `Adjusted` $R^2$.
+
+Neither the `additive` or `interaction` models were good at explaining or predicting, which lead us to believe that `grade` and `sub_grade` were derived from variables not in this dataset.
