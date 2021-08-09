@@ -1,7 +1,6 @@
 ---
 title: 'Lending Club Interest Rate Study in R'
 date: '8/8/2021'
-authors: 'Joshua Ceaser (jceaser2), Bryan Holcomb (bryanph2), Alejandro Pimentel (ap41)'
 output:
   html_document: 
     theme: readable
