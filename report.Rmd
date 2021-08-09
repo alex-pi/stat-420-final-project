@@ -487,9 +487,10 @@ add_refit = lm((models$additive)$call$formula,
 summary(models$additive)$adj.r.squared
 summary(add_refit)$adj.r.squared
 
-knitr::kable(data.frame("Predictor" = names(coef(add_refit)),
+gen_kable(data.frame("Predictor" = names(coef(add_refit)),
            "Full data" = unname(coef(models$additive)),
-           "Refit" = unname(coef(add_refit))), "pipe", align = "ccc")
+           "Refit" = unname(coef(add_refit))), 
+          caption = "Model Parameters Before/After Reving Influential Points.")
 ```
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
@@ -586,13 +587,28 @@ calc_loocv_rmse = function(model) {
   sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
 }
 
-adjrsquared = c(summary(models$additive)$adj.r.squared, summary(models$selected_aic)$adj.r.squared, summary(models$selected_bic)$adj.r.squared,
-                summary(models$interactive)$adj.r.squared, summary(models$log_additive)$adj.r.squared, summary(models$log_selected_aic)$adj.r.squared,
-                summary(models$log_selected_bic)$adj.r.squared, summary(models$log_interactive)$adj.r.squared)
-loocv_rmse = c(calc_loocv_rmse(models$additive), calc_loocv_rmse(models$selected_aic), calc_loocv_rmse(models$selected_bic), calc_loocv_rmse(models$interactive),
-               calc_loocv_rmse(models$log_additive), calc_loocv_rmse(models$log_selected_aic), calc_loocv_rmse(models$log_selected_bic), calc_loocv_rmse(models$log_interactive))
+adjrsquared = c(summary(models$additive)$adj.r.squared,
+                summary(models$selected_aic)$adj.r.squared,
+                summary(models$selected_bic)$adj.r.squared,
+                summary(models$interactive)$adj.r.squared,
+                summary(models$log_additive)$adj.r.squared,
+                summary(models$log_selected_aic)$adj.r.squared,
+                summary(models$log_selected_bic)$adj.r.squared,
+                summary(models$log_interactive)$adj.r.squared)
 
-model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
+loocv_rmse = c(calc_loocv_rmse(models$additive),
+                calc_loocv_rmse(models$selected_aic),
+                calc_loocv_rmse(models$selected_bic),
+                calc_loocv_rmse(models$interactive),
+                calc_loocv_rmse(models$log_additive),
+                calc_loocv_rmse(models$log_selected_aic),
+                calc_loocv_rmse(models$log_selected_bic),
+                calc_loocv_rmse(models$log_interactive))
+
+model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", 
+                                     "Interactive", "Additive(log)", 
+                                     "Backwards AIC(log)", "Backwards BIC(log)", 
+                                     "Interactive(log)"),
                   "Adjusted R^2" = adjrsquared,
                   "LOOCV-RMSE" = loocv_rmse,
                   check.names=FALSE)
@@ -608,9 +624,30 @@ gen_kable(model_metrics,
 
 ```{r}
 diags_data = data.frame(
-  row.names = c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
-  "Shapiro Test p-value" = c(additive_diag$shapiro$p_val,selected_aic_diag$shapiro$p_val,selected_bic_diag$shapiro$p_val,log_additive_diag$shapiro$p_val,log_selected_aic_diag$shapiro$p_val,log_selected_bic_diag$shapiro$p_val,interactive_diag$shapiro$p_val,log_interactive_diag$shapiro$p_val),
-  "BP test p-value" = c(additive_diag$bptest$p_val,selected_aic_diag$bptest$p_val,selected_bic_diag$bptest$p_val,log_additive_diag$bptest$p_val,log_selected_aic_diag$bptest$p_val,log_selected_bic_diag$bptest$p_val,interactive_diag$bptest$p_val,log_interactive_diag$bptest$p_val)
+  row.names = c("Additive", 
+                "Backwards AIC", 
+                "Backwards BIC", 
+                "Interactive", 
+                "Additive(log)", 
+                "Backwards AIC(log)", 
+                "Backwards BIC(log)", 
+                "Interactive(log)"),
+  "Shapiro Test p-value" = c(additive_diag$shapiro$p_val,
+                            selected_aic_diag$shapiro$p_val,
+                            selected_bic_diag$shapiro$p_val,
+                            log_additive_diag$shapiro$p_val,
+                            log_selected_aic_diag$shapiro$p_val,
+                            log_selected_bic_diag$shapiro$p_val,
+                            interactive_diag$shapiro$p_val,
+                            log_interactive_diag$shapiro$p_val),
+  "BP test p-value" = c(additive_diag$bptest$p_val,
+                        selected_aic_diag$bptest$p_val,
+                        selected_bic_diag$bptest$p_val,
+                        log_additive_diag$bptest$p_val,
+                        log_selected_aic_diag$bptest$p_val,
+                        log_selected_bic_diag$bptest$p_val,
+                        interactive_diag$bptest$p_val,
+                        log_interactive_diag$bptest$p_val)
 )
 
 gen_kable(diags_data,
