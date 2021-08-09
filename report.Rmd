@@ -620,11 +620,11 @@ gen_kable(model_metrics,
           foot_text = "Table 1")
 ```
 
-In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`. The LOOCV `RMSE` values for the models with a $log$ transformed response are lower because of this, so we cannot use LOOCV `RMSE` to compare the $log$ transformed response against models with not transformation.
+In `Table 1, Model Metrics` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`. The LOOCV `RMSE` values for the models with a $log$ transformed response are lower because of this, so we cannot use LOOCV `RMSE` to compare the $log$ transformed response against models with not transformation.
 
 ## Model Assumptions Results
 
-`Table 2` below shows the p-values for the Normality and Constant Variance tests given the models we tried in this study.
+`Table 2, Model Diagnostics` below shows the p-values for the Normality and Constant Variance tests given the models we tried in this study.
 
 ```{r}
 diags_data = data.frame(
@@ -738,7 +738,7 @@ However, because the linear model assumptions have been violated, we cannot reli
 
 ## Prediction Performance
 
-When evaluating the models in `Table 1` we observed both interactive models had the highest adjusted $R^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
+When evaluating the models in `Table 1, Model Metrics` we observed both interactive models had the highest adjusted $R^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
 
 However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
 
