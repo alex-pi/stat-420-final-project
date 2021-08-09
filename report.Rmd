@@ -504,7 +504,7 @@ knitr::kable(data.frame("Predictor" = names(coef(add_refit)),
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
 
 ```{r}
-
+#Placeholder for other models - will copy/paste code from above
 ```
 
 
@@ -595,6 +595,36 @@ diagnostic_graph(models$additive)
 diagnostic_graph(models$log_interactive)
 ```
 
+## Prediction
+
+```{r}
+rmse = function(model, newdata) {
+  pred = predict(model, new_data = newdata)
+  
+  return(sqrt(mean((newdata$interest_rate - pred) ^ 2)))
+}
+
+rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Log", "Log AIC", "Log BIC", "Interaction", "Log Interaction"),
+                     "Train RMSE" = c(rmse(bryan_models$additive, loans_train),
+                                      rmse(bryan_models$selected_aic, loans_train),
+                                      rmse(bryan_models$selected_bic, loans_train),
+                                      rmse(bryan_models$log_additive, loans_train),
+                                      rmse(bryan_models$log_selected_aic, loans_train),
+                                      rmse(bryan_models$log_selected_bic, loans_train),
+                                      rmse(bryan_models$interactive, loans_train),
+                                      rmse(bryan_models$log_interactive, loans_train)),
+                     "Test RMSE" = c(rmse(bryan_models$additive, loans_test),
+                                      rmse(bryan_models$selected_aic, loans_test),
+                                      rmse(bryan_models$selected_bic, loans_test),
+                                      rmse(bryan_models$log_additive, loans_test),
+                                      rmse(bryan_models$log_selected_aic, loans_test),
+                                      rmse(bryan_models$log_selected_bic, loans_test),
+                                      rmse(bryan_models$interactive, loans_test),
+                                      rmse(bryan_models$log_interactive, loans_test)))
+
+knitr::kable(rmse_df, "pipe", align = "ccc")
+
+```
 
 
 # Discussion
