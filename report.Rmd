@@ -181,7 +181,7 @@ loans_data <- subset(loans_data,
                        issue_month
                      ))
 
-## Remove 24 entries with NA dept_to_income
+## Remove 24 entries with NA debt_to_income
 loans_data <- na.omit(loans_data)
 
 ## Remove some categoricals
@@ -220,7 +220,7 @@ loans_data$term <- as.factor(loans_data$term)
 
 Now that we have processed and cleaned our data, we will further analyze for collinear variables.
 
-```{r}
+```{r, eval=FALSE}
 ##Numerical dataframe for correlations
 loans_num = subset(loans_data, select = -c(homeownership, verified_income, loan_purpose, application_type, term))
 
@@ -426,7 +426,7 @@ sum(hatvalues(models$log_interactive) > 2 * mean(hatvalues(models$log_interactiv
 
 ```
 
-We observed the base additive models (`additive` and `log_additive`) have the fewest high-leverage observations with 278. The interaction model has the most high-leverage observations with 527.
+We observed the additive models (`additive` and `log_additive`) have few high-leverage observations compared to the interaction models, which have many high-leverage observations.
 
 ### Outliers
 
@@ -451,7 +451,7 @@ sum(abs(rstandard(models$log_interactive)) > 2)
 
 ```
 
-Our log additive model has the fewest outliers, with 198. Close behind it is the AIC-selected log-transform model with 199. Our interaction model once again has the most outliers, with 273.
+The log-transformed models consistently have fewer outliers than their base counterparts. Our interaction model has the most outliers.
 
 ## Influence
 
@@ -476,7 +476,7 @@ sum(cooks.distance(models$log_interactive) > 4 / length(resid(models$log_interac
 
 ```
 
-Once again, we find that the `log_additive` model contains the fewest influential observations with 188. The interaction model once again contains the most influential observations with 302.
+Similar to the leverage investigation, we find that the log-additive models have fewer influential observations compared to the base additive models. The base interaction model once again contains the most influential observations.
 
 Now, we will refit and compare coefficients from each model.
 
@@ -496,7 +496,7 @@ gen_kable(data.frame("Predictor" = names(coef(add_refit)),
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
 
-To conserve space, we will only analyze the change in adjusted $R^2$ for the remaining models that will be refit. 
+To conserve space, we will only analyze the change in adjusted $R^2$ here for the remaining models that will be refit. The comparison of parameters for each model can be found in the appendix.
 
 ```{r}
 aic_refit = lm((models$selected_aic)$call$formula, 
@@ -692,22 +692,22 @@ rmse = function(model, newdata, log = FALSE) {
   return(sqrt(mean((newdata$interest_rate - pred) ^ 2)))
 }
 
-rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Log", "Log AIC", "Log BIC", "Interaction", "Log Interaction"),
+rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Interaction", "Log", "Log AIC", "Log BIC", "Log Interaction"),
                      "Train RMSE" = c(rmse(models$additive, loans_train),
                                       rmse(models$selected_aic, loans_train),
                                       rmse(models$selected_bic, loans_train),
+                                      rmse(models$interactive, loans_train),
                                       rmse(models$log_additive, loans_train, log = TRUE),
                                       rmse(models$log_selected_aic, loans_train, log = TRUE),
                                       rmse(models$log_selected_bic, loans_train, log = TRUE),
-                                      rmse(models$interactive, loans_train),
                                       rmse(models$log_interactive, loans_train, log = TRUE)),
                      "Test RMSE" = c(rmse(models$additive, loans_test),
                                       rmse(models$selected_aic, loans_test),
                                       rmse(models$selected_bic, loans_test),
+                                      rmse(models$interactive, loans_test),
                                       rmse(models$log_additive, loans_test, log = TRUE),
                                       rmse(models$log_selected_aic, loans_test, log = TRUE),
                                       rmse(models$log_selected_bic, loans_test, log = TRUE),
-                                      rmse(models$interactive, loans_test),
                                       rmse(models$log_interactive, loans_test, log = TRUE)))
 
 gen_kable(rmse_df,
@@ -740,4 +740,52 @@ However, because the linear model assumptions have been violated, we cannot reli
 When evaluating the models in `Table 1` we observed both interactive models had the highest adjusted $r^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
 
 However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
+
+
+
+# Appendix
+
+## Appendix A - Correlation Matrix
+
+```{r}
+cor(loans_num)
+```
+
+## Appendix B - Comparison of Parameters With Influential Observations Removed
+```{r}
+gen_kable(data.frame("Predictor" = names(coef(aic_refit)),
+           "Full data" = unname(coef(models$selected_aic)),
+           "Refit" = unname(coef(aic_refit))), 
+          caption = "AIC Additive Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(bic_refit)),
+           "Full data" = unname(coef(models$selected_bic)),
+           "Refit" = unname(coef(bic_refit))), 
+          caption = "BIC Additive Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(log_refit)),
+           "Full data" = unname(coef(models$log_additive)),
+           "Refit" = unname(coef(log_refit))), 
+          caption = "Log Additive Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(log_aic_refit)),
+           "Full data" = unname(coef(models$log_selected_aic)),
+           "Refit" = unname(coef(log_aic_refit))), 
+          caption = "Log AIC Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(log_bic_refit)),
+           "Full data" = unname(coef(models$log_selected_bic)),
+           "Refit" = unname(coef(log_bic_refit))), 
+          caption = "Log BIC Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(int_refit)),
+           "Full data" = unname(coef(models$interactive)),
+           "Refit" = unname(coef(int_refit))), 
+          caption = "Interactive Model Parameters Before/After Reving Influential Points")
+
+gen_kable(data.frame("Predictor" = names(coef(log_int_refit)),
+           "Full data" = unname(coef(models$log_interactive)),
+           "Refit" = unname(coef(log_int_refit))), 
+          caption = "Log Interactive Model Parameters Before/After Reving Influential Points")
+```
 
