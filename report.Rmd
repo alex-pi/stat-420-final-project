@@ -1,6 +1,6 @@
 ---
-title: 'Lending Club Interest Rate Study in R.'
-date: '8/3/2021'
+title: 'Lending Club Interest Rate Study in R'
+date: '8/8/2021'
 output:
   html_document: 
     theme: readable
@@ -75,7 +75,7 @@ The dataset contains background data on loans made through the LendingClub platf
 
 > This data set represents thousands of loans made through the Lending Club platform, which is a platform that allows individuals to lend to other individuals. Of course, not all loans are created equal. Someone who is a essentially a sure bet to pay back a loan will have an easier time getting a loan with a low interest rate than someone who appears to be riskier. And for people who are very risky? They may not even get a loan offer, or they may not have accepted the loan offer due to a high interest rate. It is important to keep that last part in mind, since this data set only represents loans actually made, i.e. do not mistake this data for loan applications!
 
-The dataset can be accessed by installing the `R package` below.
+The dataset can be accessed by installing the R package below.
 
 ```{r, eval=FALSE}
 install.packages("openintro")
@@ -95,7 +95,7 @@ We are interested in this dataset because it is a good example of data that is a
 
 ## Goal of the Model
 
-This study aims to to find a `model` that can predict the `interest_rate` given the available variables excluding `grade` and `subgrade`. 
+This study aims to to find a model that can predict the `interest_rate` given the available variables excluding `grade` and `subgrade`. 
 
 By fitting a simple model using the `grade` we can see a high $R^2$.
 
@@ -105,20 +105,20 @@ model_with_grade = lm(interest_rate ~ grade, data = loans_full_schema)
 r2_w_grade = summary(model_with_grade)$r.squared
 ```
 
-Given the high $R^2$ value of `r r2_w_grade`, it seems like it explains our `response` variable very well. This is confirmed by the [LendingClub documentation](https://www.lendingclub.com/foliofn/rateDetail.action), which indicates that each grade/subgrade combo corresponds to a different interest rate.
+Given the high $R^2$ value of `r r2_w_grade`, it seems like it explains our response variable very well. This is confirmed by the [LendingClub documentation](https://www.lendingclub.com/foliofn/rateDetail.action), which indicates that each grade/subgrade combo corresponds to a different interest rate.
 
 Our goal in this study is to look for a model using a set of the other predictors that can also explain the `interest_rate`.
 
 # Methods
 
-## Utility functions.
+## Utility functions
 
-Here we define `functions` that will be of use during the study.
+Here we define functions that will be of use during the study.
 
-The following `function` will help us to report diagnostics such as:
+The following function will help us to report diagnostics such as:
 
-- Normality.
-- Constant Variance.
+- Normality
+- Constant Variance
 
 ```{r, message = FALSE, warning = FALSE}
 library(lmtest)
@@ -139,7 +139,7 @@ diagnostics <- function(model, alpha = 0.05) {
 }
 ```
 
-The function below will show the `QQ` and `Fitted vs Residuals` plots for a given model.
+The function below will show the QQ and Fitted vs Residuals plots for a given model.
 
 ```{r}
 diagnostic_graph <- function(model, pcol = "grey", lcol = "dodgerblue") {
@@ -181,7 +181,7 @@ loans_data <- subset(loans_data,
                        issue_month
                      ))
 
-## Remove 24 entrie with NA dept_to_income
+## Remove 24 entries with NA dept_to_income
 loans_data <- na.omit(loans_data)
 
 ## Remove some categoricals
@@ -223,8 +223,6 @@ Now that we have processed and cleaned our data, we will further analyze for col
 ```{r}
 ##Numerical dataframe for correlations
 loans_num = subset(loans_data, select = -c(homeownership, verified_income, loan_purpose, application_type, term))
-
-round(cor(loans_num), 3)
 
 cor(loans_num) > 0.8
 ```
@@ -285,8 +283,7 @@ add_model_vif = lm(interest_rate ~ ., data = loans_data)
 vif(add_model_vif)
 ```
 
-Divide Training and Testing Data.
-
+Below, we will divide our data into a training set and a testing set. We will use $n = 7000$ to train our models.
 ```{r}
 idxs <- 1:nrow(loans_data)
 trn_idxs <- sample(idxs, 7000) 
@@ -308,7 +305,7 @@ diagnostic_graph(additive_mod)
 
 ### Response Transformation
 
-Since our response variable `interest_rate` is a positive `numeric` value, we explore a `Box-Cox Transformation` as defined below.
+Since our response variable `interest_rate` is a positive numeric value, we explore a Box-Cox Transformation as defined below.
 
 $$
 g_\lambda(y) = \left\{
@@ -332,7 +329,7 @@ additive_mod <- lm(log(interest_rate) ~ ., data = loans_train)
 diagnostic_graph(additive_mod)
 ```
 
-We noticed a significant improvement in the `QQ Plot`, yet we still see an obvious pattern in the `Fitted vs Residuals` plot.
+We noticed a significant improvement in the QQ Plot, yet we still see an obvious pattern in the Fitted vs Residuals plot.
 
 ### Predictors Transformation
 
@@ -367,7 +364,7 @@ plot(interest_rate ~ total_credit_limit,
 
 ```
 
-From the plots above, there is no obvious correlation from which we can decide a transformation to apply. In fact, we tried a few of them without noticing much improvement in the `QQ plot` and `Fitted vs Residuals`.
+From the plots above, there is no obvious correlation from which we can decide a transformation to apply. In fact, we tried a few of them without noticing much improvement in the QQ plot and Fitted vs Residuals.
 
 ## Model Selection
 
@@ -411,8 +408,6 @@ Two sets of models were developed with `interest_rate` as the response, however 
 Below, we will investigate our fit models for high-leverage data points, using the heuristic that defines a high-leverage observation as one with a leverage of two times the average.
 
 ```{r}
-#Change to use fit models
-
 sum(hatvalues(models$additive) > 2 * mean(hatvalues(models$additive)))
 
 sum(hatvalues(models$selected_aic) > 2 * mean(hatvalues(models$selected_aic)))
@@ -493,9 +488,10 @@ add_refit = lm((models$additive)$call$formula,
 summary(models$additive)$adj.r.squared
 summary(add_refit)$adj.r.squared
 
-knitr::kable(data.frame("Predictor" = names(coef(add_refit)),
+gen_kable(data.frame("Predictor" = names(coef(add_refit)),
            "Full data" = unname(coef(models$additive)),
-           "Refit" = unname(coef(add_refit))), "pipe", align = "ccc")
+           "Refit" = unname(coef(add_refit))), 
+          caption = "Model Parameters Before/After Reving Influential Points.")
 ```
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
@@ -558,9 +554,9 @@ summary(log_int_refit)$adj.r.squared
 
 From the above, we can see that the refit without influential observations increases the adjusted $R^2$ by approximately 0.07 in all additive and log-additive models, and by approximately 0.06 in the interaction models.
 
-## Model diagnostics for assumptions
+## Model Diagnostics
 
-Below we use our function to diagnose the models assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
+Below we use our function to diagnose the model assumptions. We used the `diagnostics` function defined above. The function calculates both `shapiro` and `bptest`. We use $alpha = 0.05$
 
 ```{r}
 
@@ -592,13 +588,28 @@ calc_loocv_rmse = function(model) {
   sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
 }
 
-adjrsquared = c(summary(models$additive)$adj.r.squared, summary(models$selected_aic)$adj.r.squared, summary(models$selected_bic)$adj.r.squared,
-                summary(models$interactive)$adj.r.squared, summary(models$log_additive)$adj.r.squared, summary(models$log_selected_aic)$adj.r.squared,
-                summary(models$log_selected_bic)$adj.r.squared, summary(models$log_interactive)$adj.r.squared)
-loocv_rmse = c(calc_loocv_rmse(models$additive), calc_loocv_rmse(models$selected_aic), calc_loocv_rmse(models$selected_bic), calc_loocv_rmse(models$interactive),
-               calc_loocv_rmse(models$log_additive), calc_loocv_rmse(models$log_selected_aic), calc_loocv_rmse(models$log_selected_bic), calc_loocv_rmse(models$log_interactive))
+adjrsquared = c(summary(models$additive)$adj.r.squared,
+                summary(models$selected_aic)$adj.r.squared,
+                summary(models$selected_bic)$adj.r.squared,
+                summary(models$interactive)$adj.r.squared,
+                summary(models$log_additive)$adj.r.squared,
+                summary(models$log_selected_aic)$adj.r.squared,
+                summary(models$log_selected_bic)$adj.r.squared,
+                summary(models$log_interactive)$adj.r.squared)
 
-model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
+loocv_rmse = c(calc_loocv_rmse(models$additive),
+                calc_loocv_rmse(models$selected_aic),
+                calc_loocv_rmse(models$selected_bic),
+                calc_loocv_rmse(models$interactive),
+                calc_loocv_rmse(models$log_additive),
+                calc_loocv_rmse(models$log_selected_aic),
+                calc_loocv_rmse(models$log_selected_bic),
+                calc_loocv_rmse(models$log_interactive))
+
+model_metrics <- data.frame (Model=c("Additive", "Backwards AIC", "Backwards BIC", 
+                                     "Interactive", "Additive(log)", 
+                                     "Backwards AIC(log)", "Backwards BIC(log)", 
+                                     "Interactive(log)"),
                   "Adjusted R^2" = adjrsquared,
                   "LOOCV-RMSE" = loocv_rmse,
                   check.names=FALSE)
@@ -610,13 +621,34 @@ gen_kable(model_metrics,
 
 ## Model Assumptions Results
 
-`Table 2` below shows the `p-values` for the `Normality` and `Constant Variance` tests given the models we tried in this study.
+`Table 2` below shows the p-values for the Normality and Constant Variance tests given the models we tried in this study.
 
 ```{r}
 diags_data = data.frame(
-  row.names = c("Additive", "Backwards AIC", "Backwards BIC", "Interactive", "Additive(log)", "Backwards AIC(log)", "Backwards BIC(log)", "Interactive(log)"),
-  "Shapiro Test p-value" = c(additive_diag$shapiro$p_val,selected_aic_diag$shapiro$p_val,selected_bic_diag$shapiro$p_val,log_additive_diag$shapiro$p_val,log_selected_aic_diag$shapiro$p_val,log_selected_bic_diag$shapiro$p_val,interactive_diag$shapiro$p_val,log_interactive_diag$shapiro$p_val),
-  "BP test p-value" = c(additive_diag$bptest$p_val,selected_aic_diag$bptest$p_val,selected_bic_diag$bptest$p_val,log_additive_diag$bptest$p_val,log_selected_aic_diag$bptest$p_val,log_selected_bic_diag$bptest$p_val,interactive_diag$bptest$p_val,log_interactive_diag$bptest$p_val)
+  row.names = c("Additive", 
+                "Backwards AIC", 
+                "Backwards BIC", 
+                "Interactive", 
+                "Additive(log)", 
+                "Backwards AIC(log)", 
+                "Backwards BIC(log)", 
+                "Interactive(log)"),
+  "Shapiro Test p-value" = c(additive_diag$shapiro$p_val,
+                            selected_aic_diag$shapiro$p_val,
+                            selected_bic_diag$shapiro$p_val,
+                            log_additive_diag$shapiro$p_val,
+                            log_selected_aic_diag$shapiro$p_val,
+                            log_selected_bic_diag$shapiro$p_val,
+                            interactive_diag$shapiro$p_val,
+                            log_interactive_diag$shapiro$p_val),
+  "BP test p-value" = c(additive_diag$bptest$p_val,
+                        selected_aic_diag$bptest$p_val,
+                        selected_bic_diag$bptest$p_val,
+                        log_additive_diag$bptest$p_val,
+                        log_selected_aic_diag$bptest$p_val,
+                        log_selected_bic_diag$bptest$p_val,
+                        interactive_diag$bptest$p_val,
+                        log_interactive_diag$bptest$p_val)
 )
 
 gen_kable(diags_data,
@@ -627,7 +659,7 @@ gen_kable(diags_data,
 ```
 
 
-Below we show the `QQ` and `Fitted vs Residuales` plots for 2 of those models. We take 1 additive and 1 interaction model for illustration.
+Below we show the QQ and Fitted vs Residuals plots for 2 of those models. We take 1 additive and 1 interaction model for illustration.
 
 **Plot 2.1 Additive model without response transformation**
 
@@ -687,11 +719,11 @@ gen_kable(rmse_df,
 
 ## Model Assumptions
 
-`Table 2, Models Diagnostics` shows **extremely low** `p-values` so we can easily say that `Normality` and `Constant Variance` assumptions. Perhaps we missed some transformations of the `predictors` that could help getting better `p-values`. It is likely that linearity `Assumtion` is also violated.
+`Table 2, Models Diagnostics` shows **extremely low** p-values so we can definitively conclude that the normality and constant variance assumptions have been violated. Because these two are violated, it is likely that the linearity assumtion is also violated. It is possible that some predictor transformations could restore these assumptions, but we were unable to find any transformations that made an impact on the normality and constant variance tests. 
 
-One thing we clearly observed is that the `Box-Cox Transformation` (i.e. log), improves the `QQ Plot` considerably.
+One thing we clearly observed is that the Box-Cox Transformation (i.e. log), improves the QQ Plot considerably.
 
-If we analyze the `p-values` for the $\hat\beta$ parameters in one of the fitted models we `could` argue that they are significant. The same could be said about the `Significance of the Regression` test.
+If we analyze the p-values for the $\hat\beta$ parameters in one of the fitted models we would conclude that they are significant. Similarly, we can conclude that the ANOVA Significance of Regression test is significant, and therefore that the regression is significant.
 
 ```{r}
 summ_example = summary(models$log_selected_bic)
@@ -699,7 +731,7 @@ summ_example = summary(models$log_selected_bic)
 gen_kable(summ_example$coef)
 ```
 
-Unfortunately, we can hardly trust these results given the evidence of Assumption Violations found.
+However, because the linear model assumptions have been violated, we cannot reliably conclude whether the results of any of the above tests are statistically significant.
 
 ## Prediction Performance
 
