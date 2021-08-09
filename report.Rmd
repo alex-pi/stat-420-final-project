@@ -492,16 +492,69 @@ summary(models$additive)$adj.r.squared
 summary(add_refit)$adj.r.squared
 
 knitr::kable(data.frame("Predictor" = names(coef(add_refit)),
-           "full data" = unname(coef(models$additive)),
-           "refit" = unname(coef(add_refit))), "pipe", align = "ccc")
+           "Full data" = unname(coef(models$additive)),
+           "Refit" = unname(coef(add_refit))), "pipe", align = "ccc")
 ```
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
 
+To conserve space, we will only analyze the change in adjusted $R^2$ for the remaining models that will be refit. 
+
 ```{r}
-#Placeholder for other models - will copy/paste code from above
+aic_refit = lm((models$selected_aic)$call$formula, 
+               data = loans_train,
+               subset = cooks.distance(models$selected_aic) <= 4 / length(resid(models$selected_aic)))
+
+summary(models$selected_aic)$adj.r.squared
+summary(aic_refit)$adj.r.squared
+
+bic_refit = lm((models$selected_bic)$call$formula, 
+               data = loans_train,
+               subset = cooks.distance(models$selected_bic) <= 4 / length(resid(models$selected_bic)))
+
+summary(models$selected_bic)$adj.r.squared
+summary(bic_refit)$adj.r.squared
+
+##Log Models
+log_refit = lm((models$log_additive)$call$formula, 
+               data = loans_train,
+               subset = cooks.distance(models$log_additive) <= 4 / length(resid(models$log_additive)))
+
+summary(models$log_additive)$adj.r.squared
+summary(log_refit)$adj.r.squared
+
+log_aic_refit = lm((models$log_selected_aic)$call$formula, 
+               data = loans_train,
+               subset = cooks.distance(models$log_selected_aic) <= 4 / length(resid(models$log_selected_aic)))
+
+summary(models$log_selected_aic)$adj.r.squared
+summary(log_aic_refit)$adj.r.squared
+
+log_bic_refit = lm((models$log_selected_bic)$call$formula, 
+               data = loans_train,
+               subset = cooks.distance(models$log_selected_bic) <= 4 / length(resid(models$log_selected_bic)))
+
+summary(models$log_selected_bic)$adj.r.squared
+summary(log_bic_refit)$adj.r.squared
+
+#Interaction Models
+int_refit = lm(update(as.formula(models$selected_aic$call$formula), ~. ^2), 
+               data = loans_train,
+               subset = cooks.distance(models$interactive) <= 4 / length(resid(models$interactive)))
+
+summary(models$interactive)$adj.r.squared
+summary(int_refit)$adj.r.squared
+
+log_int_refit = lm(update(as.formula(models$log_selected_aic$call$formula), ~. ^2), 
+               data = loans_train,
+               subset = cooks.distance(models$log_interactive) <= 4 / length(resid(models$log_interactive)))
+
+summary(models$log_interactive)$adj.r.squared
+summary(log_int_refit)$adj.r.squared
+
 ```
 
+From the above, we can see that the refit without influential observations increases the adjusted $R^2$ by approximately 0.07 in all additive and log-additive models, and by approximately 0.06 in the interaction models.
 
 ## Model diagnostics for assumptions
 
@@ -651,7 +704,7 @@ Unfortunately, we can hardly trust these results given the evidence of Assumptio
 
 ## Prediction Performance
 
-Overall, the additive model family was slightly better at predicting the test dataset than the logarithmic, and both families slightly outperformed the interaction models.
+Overall, the additive model family was better at predicting the test dataset than the logarithmic response family, and both families outperformed the interaction models.
 
 However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
 
