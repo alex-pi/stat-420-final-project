@@ -598,8 +598,14 @@ diagnostic_graph(models$log_interactive)
 ## Prediction
 
 ```{r}
-rmse = function(model, newdata) {
-  pred = predict(model, new_data = newdata)
+rmse = function(model, newdata, log = FALSE) {
+  
+  if(log) {
+    pred = exp(predict(model, new_data = newdata))
+  }
+  else {
+    pred = predict(model, new_data = newdata)
+  }
   
   return(sqrt(mean((newdata$interest_rate - pred) ^ 2)))
 }
@@ -608,21 +614,23 @@ rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Log", "Log A
                      "Train RMSE" = c(rmse(bryan_models$additive, loans_train),
                                       rmse(bryan_models$selected_aic, loans_train),
                                       rmse(bryan_models$selected_bic, loans_train),
-                                      rmse(bryan_models$log_additive, loans_train),
-                                      rmse(bryan_models$log_selected_aic, loans_train),
-                                      rmse(bryan_models$log_selected_bic, loans_train),
+                                      rmse(bryan_models$log_additive, loans_train, log = TRUE),
+                                      rmse(bryan_models$log_selected_aic, loans_train, log = TRUE),
+                                      rmse(bryan_models$log_selected_bic, loans_train, log = TRUE),
                                       rmse(bryan_models$interactive, loans_train),
-                                      rmse(bryan_models$log_interactive, loans_train)),
+                                      rmse(bryan_models$log_interactive, loans_train, log = TRUE)),
                      "Test RMSE" = c(rmse(bryan_models$additive, loans_test),
                                       rmse(bryan_models$selected_aic, loans_test),
                                       rmse(bryan_models$selected_bic, loans_test),
-                                      rmse(bryan_models$log_additive, loans_test),
-                                      rmse(bryan_models$log_selected_aic, loans_test),
-                                      rmse(bryan_models$log_selected_bic, loans_test),
+                                      rmse(bryan_models$log_additive, loans_test, log = TRUE),
+                                      rmse(bryan_models$log_selected_aic, loans_test, log = TRUE),
+                                      rmse(bryan_models$log_selected_bic, loans_test, log = TRUE),
                                       rmse(bryan_models$interactive, loans_test),
-                                      rmse(bryan_models$log_interactive, loans_test)))
+                                      rmse(bryan_models$log_interactive, loans_test, log = TRUE)))
 
-knitr::kable(rmse_df, "pipe", align = "ccc")
+gen_kable(rmse_df,
+          caption = "RMSE Values",
+          foot_text = "Table 3")
 
 ```
 
@@ -647,5 +655,9 @@ gen_kable(summ_example$coef)
 
 Unfortunately, we can hardly trust these results given the evidence of Assumption Violations found.
 
+## Prediction Performance
 
+Overall, the additive model family was slightly better at predicting the test dataset than the logarithmic, and both families slightly outperformed the interaction models.
+
+However, these test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is more than one standard deviation away from the true value.
 
