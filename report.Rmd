@@ -402,6 +402,8 @@ models = generate_models(loans_train)
 
 ```
 
+Two sets of models were developed with `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors that did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model.
+
 ## Unusual Observations
 
 ### Leverage
@@ -683,9 +685,6 @@ gen_kable(rmse_df,
 
 # Discussion
 
-## Models
-Two sets of models were developed with `interest_rate` as the response, however one set of models used the $log$ transformation of the response. We chose to build an additive model, which used all predictors that did not have collinearity issues. We also built a backwards AIC and BIC model from the additive models. Lastly we built an interaction model, however instead of using all predictors from the additive model, we chose to use the predictors from the AIC model to develop the two-way interaction model. In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`.
-
 ## Model Assumptions
 
 `Table 2, Models Diagnostics` shows **extremely low** `p-values` so we can easily say that `Normality` and `Constant Variance` assumptions. Perhaps we missed some transformations of the `predictors` that could help getting better `p-values`. It is likely that linearity `Assumtion` is also violated.
@@ -704,7 +703,7 @@ Unfortunately, we can hardly trust these results given the evidence of Assumptio
 
 ## Prediction Performance
 
-Overall, the additive model family was better at predicting the test dataset than the logarithmic response family, and both families outperformed the interaction models.
+In `Table 1` we observe both interactive models have the highest adjusted $r^2$ and the lowest LOOCV `RMSE`. However when validating against the test data, the additive model family was better at predicting the test dataset over the logarithmic response family, and both families outperformed the interaction models.
 
 However, the test RMSE values are indicators of poor prediction performance, as the standard deviation of the `interest_rate` in the test dataset of 4.968. Thus, our average error is greater than one standard deviation away from the true value.
 
