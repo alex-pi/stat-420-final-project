@@ -598,22 +598,22 @@ rmse = function(model, newdata) {
 }
 
 rmse_df = data.frame("Model" = c("Additive", "Add AIC", "Add BIC", "Log", "Log AIC", "Log BIC", "Interaction", "Log Interaction"),
-                     "Train RMSE" = c(rmse(bryan_models$additive, loans_train),
-                                      rmse(bryan_models$selected_aic, loans_train),
-                                      rmse(bryan_models$selected_bic, loans_train),
-                                      rmse(bryan_models$log_additive, loans_train),
-                                      rmse(bryan_models$log_selected_aic, loans_train),
-                                      rmse(bryan_models$log_selected_bic, loans_train),
-                                      rmse(bryan_models$interactive, loans_train),
-                                      rmse(bryan_models$log_interactive, loans_train)),
-                     "Test RMSE" = c(rmse(bryan_models$additive, loans_test),
-                                      rmse(bryan_models$selected_aic, loans_test),
-                                      rmse(bryan_models$selected_bic, loans_test),
-                                      rmse(bryan_models$log_additive, loans_test),
-                                      rmse(bryan_models$log_selected_aic, loans_test),
-                                      rmse(bryan_models$log_selected_bic, loans_test),
-                                      rmse(bryan_models$interactive, loans_test),
-                                      rmse(bryan_models$log_interactive, loans_test)))
+                     "Train RMSE" = c(rmse(models$additive, loans_train),
+                                      rmse(models$selected_aic, loans_train),
+                                      rmse(models$selected_bic, loans_train),
+                                      rmse(models$log_additive, loans_train),
+                                      rmse(models$log_selected_aic, loans_train),
+                                      rmse(models$log_selected_bic, loans_train),
+                                      rmse(models$interactive, loans_train),
+                                      rmse(models$log_interactive, loans_train)),
+                     "Test RMSE" = c(rmse(models$additive, loans_test),
+                                      rmse(models$selected_aic, loans_test),
+                                      rmse(models$selected_bic, loans_test),
+                                      rmse(models$log_additive, loans_test),
+                                      rmse(models$log_selected_aic, loans_test),
+                                      rmse(models$log_selected_bic, loans_test),
+                                      rmse(models$interactive, loans_test),
+                                      rmse(models$log_interactive, loans_test)))
 
 knitr::kable(rmse_df, "pipe", align = "ccc")
 
