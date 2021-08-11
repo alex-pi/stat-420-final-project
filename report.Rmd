@@ -492,7 +492,7 @@ summary(add_refit)$adj.r.squared
 gen_kable(data.frame("Predictor" = names(coef(add_refit)),
            "Full data" = unname(coef(models$additive)),
            "Refit" = unname(coef(add_refit))), 
-          caption = "Model Parameters Before/After Reving Influential Points.")
+          caption = "Model Parameters Before/After Removing Influential Points.")
 ```
 
 From the above table, one can see that the largest changes in coefficients were all less than 1.0, and in many cases were around 0.1. We can also see that removing the influential observations improved the adjusted $R^2$ value by approximately 0.07.
@@ -761,37 +761,37 @@ cor(loans_num)
 gen_kable(data.frame("Predictor" = names(coef(aic_refit)),
            "Full data" = unname(coef(models$selected_aic)),
            "Refit" = unname(coef(aic_refit))), 
-          caption = "AIC Additive Model Parameters Before/After Reving Influential Points")
+          caption = "AIC Additive Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(bic_refit)),
            "Full data" = unname(coef(models$selected_bic)),
            "Refit" = unname(coef(bic_refit))), 
-          caption = "BIC Additive Model Parameters Before/After Reving Influential Points")
+          caption = "BIC Additive Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(log_refit)),
            "Full data" = unname(coef(models$log_additive)),
            "Refit" = unname(coef(log_refit))), 
-          caption = "Log Additive Model Parameters Before/After Reving Influential Points")
+          caption = "Log Additive Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(log_aic_refit)),
            "Full data" = unname(coef(models$log_selected_aic)),
            "Refit" = unname(coef(log_aic_refit))), 
-          caption = "Log AIC Model Parameters Before/After Reving Influential Points")
+          caption = "Log AIC Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(log_bic_refit)),
            "Full data" = unname(coef(models$log_selected_bic)),
            "Refit" = unname(coef(log_bic_refit))), 
-          caption = "Log BIC Model Parameters Before/After Reving Influential Points")
+          caption = "Log BIC Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(int_refit)),
            "Full data" = unname(coef(models$interactive)),
            "Refit" = unname(coef(int_refit))), 
-          caption = "Interactive Model Parameters Before/After Reving Influential Points")
+          caption = "Interactive Model Parameters Before/After Removing Influential Points")
 
 gen_kable(data.frame("Predictor" = names(coef(log_int_refit)),
            "Full data" = unname(coef(models$log_interactive)),
            "Refit" = unname(coef(log_int_refit))), 
-          caption = "Log Interactive Model Parameters Before/After Reving Influential Points")
+          caption = "Log Interactive Model Parameters Before/After Removing Influential Points")
 ```
 
 ## Appendix C - Authors
